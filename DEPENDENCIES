@@ -39,6 +39,8 @@ else
     fi
 fi
 
+sudo apt-get install libz-dev
+
 if [[ -z "$(which featureCounts)" ]]; then
     FC_VERSION=2.0.3
     cd
