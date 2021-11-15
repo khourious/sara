@@ -2,7 +2,7 @@
 sara
 ====
 
-**\s\**\emi\ **\a\**\utomatic\ **\R\**\NA-Seq\ \**\a\**\nalysis
+**s**\emi\ **a**\utomatic\ **R**\NA-Seq\ **a**\nalysis
 
 This repository contains a workflow to performs a RNA-Seq analysis created by Laise de Moraes and Joyce Silva (FIOCRUZ-IGM).
 
