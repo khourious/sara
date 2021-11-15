@@ -1,9 +1,8 @@
-======================================
-sara = semi automatic RNA-Seq analysis
-======================================
+====
+sara
+====
 
-This repository contains a semi-automatic workflow to performs a RNA-Seq analysis created by Laise de Moraes and Joyce Silva (FIOCRUZ-IGM).
-
+sara is a **s**emi **a**utomatic **R**NA-Seq **a**nalysis workflow to performs a RNA-Seq analysis created by Laise de Moraes and Joyce Silva (FIOCRUZ-IGM).
 
 ***********************
 Setting up the pipeline
