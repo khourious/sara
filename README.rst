@@ -4,7 +4,7 @@ sara
 
 **s**\emi\  **a**\utomatic\  **R**\NA-Seq\  **a**\nalysis
 
-This repository contains a workflow to performs a RNA-Seq analysis created by Laise de Moraes and Joyce Silva (FIOCRUZ-IGM). This README is also available in brazilian portuguese by `click here. <README_PTBR.rst>`_
+This repository contains a workflow to performs a RNA-Seq analysis created by Laise de Moraes and Joyce Silva (FIOCRUZ-IGM). This README is also available in brazilian portuguese by `click here <README_PTBR.rst>`_.
 
 ***********************
 Setting up the pipeline
