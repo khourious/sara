@@ -1,0 +1,115 @@
+#!/bin/bash
+
+usage () {
+echo "
+semi automatic RNA-Seq analysis
+
+Usage: "$(basename "$0")" -c <config file name>
+
+-c  Name of CSV file that contains a list of the softwares and the experimental groups.
+-t  Max number of threads (default: all cores).
+"
+exit -1
+}
+
+while getopts "hc:t:" OPT; do
+    case "$OPT" in
+        h) usage;;
+        c) ID="$OPTARG";;
+        t) THREADS="$OPTARG";;
+    esac
+done
+
+SARA="$HOME"/sara
+
+ANALYSISDIR="$SARA"/ANALYSIS/"$ID"
+
+echo "" && echo "Output path: "$ANALYSISDIR""
+echo "Log Analysis: "$ANALYSISDIR"/"$ID"_log_$(date +'%Y-%m-%d').txt"
+
+[ ! -d "$ANALYSISDIR" ] && mkdir "$ANALYSISDIR" "$ANALYSISDIR"/ALIGN "$ANALYSISDIR"/CAT "$ANALYSISDIR"/FASTQ \
+    "$ANALYSISDIR"/INDEX "$ANALYSISDIR"/QC1 "$ANALYSISDIR"/QC2 "$ANALYSISDIR"/REFERENCE "$ANALYSISDIR"/TRIMMED \
+    "$SARA"/ANALYSIS
+
+bg() {
+
+    start=$(date +%s.%N)
+
+    if [[ -z "$THREADS" ]]; then THREADS=$(lscpu | grep 'CPU(s):' | awk '{print $2}' | sed -n '1p'); fi
+
+    find "$SARA"/RAW/"$ID" -type f -name '*.fastq.gz' -exec cp -vat "$ANALYSISDIR"/FASTQ {} +
+
+    for i in $(find "$ANALYSISDIR"/FASTQ -type f -name "*.fastq.gz" | awk -F/ '{print $NF}' | awk -F'_L' '{print $1}' | sort -u); do
+        cat "$ANALYSISDIR"/FASTQ/"$i"_L00*_R1_001.fastq.gz > "$ANALYSISDIR"/CAT/"$i"_R1.fastq.gz
+        cat "$ANALYSISDIR"/FASTQ/"$i"_L00*_R2_001.fastq.gz > "$ANALYSISDIR"/CAT/"$i"_R2.fastq.gz
+    done
+
+    source activate rnaseq
+
+    QC=$(cat "$SARA"/SHEETS/"$ID".csv | sed -n 1p | awk -F, '{print $1}')
+    if [[ "$QC" == fastqc ]]; then
+        fastqc -t "$THREADS" "$ANALYSISDIR"/FASTQ/*.fastq.gz -o "$ANALYSISDIR"/QC1
+        fastqc -t "$THREADS" "$ANALYSISDIR"/CAT/*.fastq.gz -o "$ANALYSISDIR"/QC2
+    fi
+
+    SUMMARY=$(cat "$SARA"/SHEETS/"$ID".csv | sed -n 1p | awk -F, '{print $2}')
+    if [[ "$SUMMARY" == multiqc ]]; then
+        multiqc -s -i ""$ID" 1_FASTQ" -ip --no-data-dir -n "$ANALYSISDIR"/"$ID"_FASTQ_MULTIQC_REPORT "$ANALYSISDIR"/QC1/*
+        multiqc -s -i ""$ID" 2_CAT" -ip --no-data-dir -n "$ANALYSISDIR"/"$ID"_CAT_MULTIQC_REPORT "$ANALYSISDIR"/QC2/*
+    fi
+
+    TRIMM=$(cat "$SARA"/SHEETS/"$ID".csv | sed -n 1p | awk -F, '{print $3}')
+    if [[ "$TRIMM" == trimmomatic ]]; then
+        for i in $(find "$ANALYSISDIR"/CAT -type f -name "*.fastq.gz" | awk -F/ '{print $NF}' | awk -F'_S' '{print $1}' | sort -u); do
+            trimmomatic PE -threads "$THREADS" -phred33 \
+            "$ANALYSISDIR"/CAT/"$i"*R1.fastq.gz "$ANALYSISDIR"/CAT/"$i"*R2.fastq.gz \
+            "$ANALYSISDIR"/TRIMMED/"$i"_R1_PAIRED.fastq.gz "$ANALYSISDIR"/TRIMMED/"$i"_R1_UNPAIRED.fastq.gz \
+            "$ANALYSISDIR"/TRIMMED/"$i"_R2_PAIRED.fastq.gz "$ANALYSISDIR"/TRIMMED/"$i"_R2_UNPAIRED.fastq.gz \
+            LEADING:3 TRAILING:3 SLIDINGWINDOW:4:25 MINLEN:36
+        done
+    fi
+
+    REFERENCE=$(cat "$SARA"/SHEETS/"$ID".csv | sed -n 1p | awk -F, '{print $4}')
+    if [[ "$REFERENCE" == GRCh38.p13 ]]; then
+        wget http://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_38/GRCh38.p13.genome.fa.gz -q \
+        -O "$ANALYSISDIR"/REFERENCE/"$REFERENCE".fa.gz
+        wget http://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_38/gencode.v38.chr_patch_hapl_scaff.annotation.gtf.gz -q \
+        -O "$ANALYSISDIR"/REFERENCE/"$REFERENCE".gtf.gz
+        gunzip "$ANALYSISDIR"/REFERENCE/"$REFERENCE".fa.gz
+        gunzip "$ANALYSISDIR"/REFERENCE/"$REFERENCE".gtf.gz
+    fi
+
+    MAPPING=$(cat "$SARA"/SHEETS/"$ID".csv | sed -n 1p | awk -F, '{print $5}')
+    if [[ "$MAPPING" == star ]]; then
+        STAR --runThreadN "$THREADS" --runMode genomeGenerate --genomeDir "$ANALYSISDIR"/INDEX \
+            --genomeFastaFiles "$ANALYSISDIR"/REFERENCE/"$REFERENCE".fa
+        for i in $(find "$ANALYSISDIR"/TRIMMED -type f -name "*.fastq.gz" | awk -F/ '{print $NF}' | awk -F'_S' '{print $1}' | sort -u); do
+            STAR --runThreadN "$THREADS" --runMode alignReads --genomeDir "$ANALYSISDIR"/INDEX \
+            --sjdbGTFfile "$ANALYSISDIR"/REFERENCE/"$REFERENCE".gtf \
+            --readFilesIn "$ANALYSISDIR"/TRIMMED/"$i"_R1_PAIRED.fastq.gz \
+            "$ANALYSISDIR"/TRIMMED/"$i"_R2_PAIRED.fastq.gz --readFilesCommand zcat \
+            --outFileNamePrefix "$ANALYSISDIR"/ALIGN/"$i"_ --outSAMtype BAM Unsorted --outReadsUnmapped Fastx
+        done
+    fi
+
+    COUNT=$(cat "$SARA"/SHEETS/"$ID".csv | sed -n 1p | awk -F, '{print $6}')
+    if [[ "$COUNT" == featurecounts ]]; then
+        featureCounts -a "$ANALYSISDIR"/REFERENCE/"$REFERENCE".gtf -o "$ANALYSISDIR"/"$ID"_COUNTS.txt \
+        -s 2 -G "$ANALYSISDIR"/REFERENCE/"$REFERENCE".fa -p --countReadPairs -C -T "$THREADS" \
+        $(cat "$SARA"/SHEETS/"$ID".csv | sed '1d' | awk -F, -v ALIGNPATH="$ANALYSISDIR"/ALIGN/ '$2~/EXP|CTRL/ \
+            {print ALIGNPATH $1"_Aligned.out.bam"}' | xargs)
+    fi
+
+    DEG=$(cat "$SARA"/SHEETS/"$ID".csv | sed -n 1p | awk -F, '{print $7}')
+
+    end=$(date +%s.%N)
+
+    runtime=$(python -c "print(${end} - ${start})")
+
+    echo "" && echo "Done. The runtime was "$runtime" seconds."
+
+}
+
+bg $1 &>>"$ANALYSISDIR"/"$ID"_log_$(date +'%Y-%m-%d').txt &
+
+exit 0
