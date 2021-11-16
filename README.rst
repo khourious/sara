@@ -18,11 +18,11 @@ Download and install the pipeline from the GitHub repo:
     chmod 700 -R DEPENDENCIES
     bash DEPENDENCIES
 
-****************************
-How to use the sara pipeline
-****************************
+*******************
+How to use the sara
+*******************
 
-It is necessary to create the sample sheet (.csv). You need create in ``sheets`` directory.
+It is necessary to create the CSV sample sheet. You need create in ``SHEETS`` directory.
 
 The csv file name **corresponds to the library name** and contains in the first line: xxx,xxx,xxx and the next lines: xxxxxxxxxxxxxxxxxxxxxxxxxxxxx -- ATTENTION: **NO HEADER!!**
 
@@ -36,5 +36,5 @@ The csv file name **corresponds to the library name** and contains in the first 
 
     Usage: sara -c <config file name>
 
-    -c  Name of CSV file that contains a list of the softwares and the experimental groups (default path: /sara/sheets).
+    -c  Name of CSV file that contains the list of the softwares and the experimental groups.
     -t  Max number of threads (default: all cores).
