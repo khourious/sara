@@ -6,7 +6,7 @@ semi automatic RNA-Seq analysis
 
 Usage: "$(basename "$0")" -c <config file name>
 
--c  Name of CSV file that contains a list of the softwares and the experimental groups.
+-c  Name of CSV file that contains the list of the softwares and the experimental groups.
 -t  Max number of threads (default: all cores).
 "
 exit -1
@@ -27,9 +27,9 @@ ANALYSISDIR="$SARA"/ANALYSIS/"$ID"
 echo "" && echo "Output path: "$ANALYSISDIR""
 echo "Log Analysis: "$ANALYSISDIR"/"$ID"_log_$(date +'%Y-%m-%d').txt"
 
-[ ! -d "$ANALYSISDIR" ] && mkdir "$ANALYSISDIR" "$ANALYSISDIR"/ALIGN "$ANALYSISDIR"/CAT "$ANALYSISDIR"/FASTQ \
-    "$ANALYSISDIR"/INDEX "$ANALYSISDIR"/QC1 "$ANALYSISDIR"/QC2 "$ANALYSISDIR"/REFERENCE "$ANALYSISDIR"/TRIMMED \
-    "$SARA"/ANALYSIS
+[ ! -d "$ANALYSISDIR" ] && mkdir "$SARA"/ANALYSIS "$ANALYSISDIR" "$ANALYSISDIR"/ALIGN "$ANALYSISDIR"/CAT \
+    "$ANALYSISDIR"/FASTQ "$ANALYSISDIR"/INDEX "$ANALYSISDIR"/QC1 "$ANALYSISDIR"/QC2 "$ANALYSISDIR"/REFERENCE \
+    "$ANALYSISDIR"/TRIMMED
 
 bg() {
 
