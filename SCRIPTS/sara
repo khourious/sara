@@ -38,26 +38,22 @@ bg() {
 
     find "$SARA"/RAW/"$ID" -type f -name '*.fastq.gz' -exec cp -vat "$ANALYSISDIR" {} +
 
-    for i in $(find "$ANALYSISDIR" -type f -name "*.fastq.gz" | awk -F/ '{print $NF}' | awk -F'_L' '{print $1}' | sort -u); do
-        cat "$ANALYSISDIR"/"$i"_L00*_R1_001.fastq.gz > "$ANALYSISDIR"/CONCATENATED/"$i"_R1.fastq.gz
-        cat "$ANALYSISDIR"/"$i"_L00*_R2_001.fastq.gz > "$ANALYSISDIR"/CONCATENATED/"$i"_R2.fastq.gz
+    for i in $(find "$ANALYSISDIR" -type f -name "*.fastq.gz" | awk -F/ '{print $NF}' | awk -F"_L" '{print $1}' | \
+        sort -u); do
+            cat "$ANALYSISDIR"/"$i"_L00*_R1_001.fastq.gz > "$ANALYSISDIR"/CONCATENATED/"$i"_R1.fastq.gz
+            cat "$ANALYSISDIR"/"$i"_L00*_R2_001.fastq.gz > "$ANALYSISDIR"/CONCATENATED/"$i"_R2.fastq.gz
     done
 
     rm "$ANALYSISDIR"/*_001.fastq.gz
 
     source activate rnaseq
 
-    QC=$(cat "$SARA"/SHEETS/"$ID".csv | sed -n 1p | awk -F, '{print $1}')
-    if [[ "$QC" == [Ff][Aa][Ss][Tt][Qq][Cc] ]]; then
-        fastqc -t "$THREADS" $(find "$SARA"/RAW/"$ID" -type f -name "*.fastq.gz") -o "$ANALYSISDIR"/QC1
-        fastqc -t "$THREADS" $(find "$ANALYSISDIR"/CONCATENATED -type f -name "*.fastq.gz") -o "$ANALYSISDIR"/QC2
-    fi
+    fastqc -t "$THREADS" $(find "$SARA"/RAW/"$ID" -type f -name "*.fastq.gz") -o "$ANALYSISDIR"/QC1
+    fastqc -t "$THREADS" $(find "$ANALYSISDIR"/CONCATENATED -type f -name "*.fastq.gz") -o "$ANALYSISDIR"/QC2
 
-    SUMMARY=$(cat "$SARA"/SHEETS/"$ID".csv | sed -n 1p | awk -F, '{print $2}')
-    if [[ "$SUMMARY" == [Mm][Uu][Ll][Tt][Ii][Qq][Cc] ]]; then
-        multiqc -s -i ""$ID" RAW" -ip --no-data-dir -n "$ANALYSISDIR"/"$ID"_RAW_multiqc_report "$ANALYSISDIR"/QC1/*
-        multiqc -s -i ""$ID" CONCATENATED" -ip --no-data-dir -n "$ANALYSISDIR"/"$ID"_CONCATENATED_multiqc_report "$ANALYSISDIR"/QC2/*
-    fi
+    multiqc -s -i ""$ID" RAW" -ip --no-data-dir -n "$ANALYSISDIR"/"$ID"_RAW_multiqc_report "$ANALYSISDIR"/QC1/*
+    multiqc -s -i ""$ID" CONCATENATED" -ip --no-data-dir -n "$ANALYSISDIR"/"$ID"_CONCATENATED_multiqc_report \
+        "$ANALYSISDIR"/QC2/*
 
     TRIMM=$(cat "$SARA"/SHEETS/"$ID".csv | sed -n 1p | awk -F, '{print $3}')
     if [[ "$TRIMM" == [Tt][Rr][Ii][Mm][Mm][Oo][Mm][Aa][Tt][Ii][Cc] ]]; then
