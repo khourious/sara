@@ -25,14 +25,18 @@ else
     if [[ -z "$(which mamba)" ]]; then
         conda install -y -c conda-forge mamba
         mamba update -y -c conda-forge -c anaconda -c bioconda -c defaults -n base conda
-        if [[ -z "$(conda env list | grep -E "'r'|rnaseq")" ]]; then
+        if [[ -z "$(conda env list | grep "'/miniconda3/envs/r'")" ]]; then
             mamba create -y -n r -c r -c conda-forge -c anaconda -c bioconda -c defaults bioconductor-deseq2 bioconductor-enhancedvolcano bioconductor-genefilter bioconductor-vsn boost-cpp r-ashr r-base=4.1 r-biocmanager r-calibrate r-devtools r-ggplot2 r-gplots r-pheatmap r-rcolorbrewer r-remotes
+        fi
+        if [[ -z "$(conda env list | grep "'/miniconda3/envs/rnaseq'")" ]]; then
             mamba create -y -n rnaseq -c conda-forge -c anaconda -c bioconda -c defaults fastqc multiqc trimmomatic star
         fi
     else
         mamba update -y -c conda-forge -c anaconda -c bioconda -c defaults -n base conda
-        if [[ -z "$(conda env list | grep -E "'r'|rnaseq")" ]]; then
+        if [[ -z "$(conda env list | grep "'/miniconda3/envs/r'")" ]]; then
             mamba create -y -n r -c r -c conda-forge -c anaconda -c bioconda -c defaults bioconductor-deseq2 bioconductor-enhancedvolcano bioconductor-genefilter bioconductor-vsn boost-cpp r-ashr r-base=4.1 r-biocmanager r-calibrate r-devtools r-ggplot2 r-gplots r-pheatmap r-rcolorbrewer r-remotes
+        fi
+        if [[ -z "$(conda env list | grep "'/miniconda3/envs/rnaseq'")" ]]; then
             mamba create -y -n rnaseq -c conda-forge -c anaconda -c bioconda -c defaults fastqc multiqc trimmomatic star
         fi
     fi
