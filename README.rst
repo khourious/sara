@@ -15,8 +15,8 @@ Download and install the pipeline from the GitHub repo:
 .. code:: bash
 
     git clone --recursive https://github.com/khourious/sara.git; cd sara
-    chmod 700 -R DEPENDENCIES
-    bash DEPENDENCIES
+    chmod 700 -R INSTALL
+    bash INSTALL
 
 *******************
 How to use the sara
