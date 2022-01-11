@@ -2,47 +2,45 @@
 
 chmod 700 -R $HOME/sara/SCRIPTS
 
-MYSHELL=$(echo "$SHELL" | awk -F/ '{print $NF}')
+MYSHELL=$(echo $SHELL | awk -F/ '{print $NF}')
 
 sudo apt-get install libz-dev
 
-if [[ -z "$(which sara)" ]]; then
-    echo 'export PATH=$HOME/sara/SCRIPTS:/usr/local/share/rsi/idl/bin:$PATH' >> $HOME/.${MYSHELL}rc
+if [[ -z $(which sara) ]]; then
+    echo 'export PATH=$HOME/sara/SCRIPTS:/usr/local/share/rsi/idl/bin:$PATH' >> $HOME/."$MYSHELL"rc
 fi
 
-if [[ -z "$(which conda)" ]]; then
+if [[ -z $(which conda) ]]; then
     cd
     wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
     bash Miniconda3-latest-Linux-x86_64.sh -bfp miniconda3
     rm Miniconda3-latest-Linux-x86_64.sh
-    echo 'export PATH=$HOME/miniconda3/bin:/usr/local/share/rsi/idl/bin:$PATH' >> $HOME/.${MYSHELL}rc
+    echo 'export PATH=$HOME/miniconda3/bin:/usr/local/share/rsi/idl/bin:$PATH' >> $HOME/."$MYSHELL"rc
     export PATH=$HOME/miniconda3/bin:/usr/local/share/rsi/idl/bin:$PATH
     conda install -y -c conda-forge mamba
-    mamba update -y -c conda-forge -c anaconda -c bioconda -c defaults -n base conda
-    mamba create -y -n r -c r -c conda-forge -c anaconda -c bioconda -c defaults bioconductor-deseq2 bioconductor-enhancedvolcano bioconductor-genefilter bioconductor-vsn boost-cpp r-ashr r-base=4.1 r-biocmanager r-calibrate r-devtools r-ggplot2 r-gplots r-pheatmap r-rcolorbrewer r-remotes
-    mamba create -y -n rnaseq -c conda-forge -c anaconda -c bioconda -c defaults fastqc multiqc trimmomatic star
-else
-    if [[ -z "$(which mamba)" ]]; then
-        conda install -y -c conda-forge mamba
-        mamba update -y -c conda-forge -c anaconda -c bioconda -c defaults -n base conda
-        if [[ -z "$(conda env list | grep "'/miniconda3/envs/r'")" ]]; then
-            mamba create -y -n r -c r -c conda-forge -c anaconda -c bioconda -c defaults bioconductor-deseq2 bioconductor-enhancedvolcano bioconductor-genefilter bioconductor-vsn boost-cpp r-ashr r-base=4.1 r-biocmanager r-calibrate r-devtools r-ggplot2 r-gplots r-pheatmap r-rcolorbrewer r-remotes
-        fi
-        if [[ -z "$(conda env list | grep "'/miniconda3/envs/rnaseq'")" ]]; then
-            mamba create -y -n rnaseq -c conda-forge -c anaconda -c bioconda -c defaults fastqc multiqc trimmomatic star
-        fi
-    else
-        mamba update -y -c conda-forge -c anaconda -c bioconda -c defaults -n base conda
-        if [[ -z "$(conda env list | grep "'/miniconda3/envs/r'")" ]]; then
-            mamba create -y -n r -c r -c conda-forge -c anaconda -c bioconda -c defaults bioconductor-deseq2 bioconductor-enhancedvolcano bioconductor-genefilter bioconductor-vsn boost-cpp r-ashr r-base=4.1 r-biocmanager r-calibrate r-devtools r-ggplot2 r-gplots r-pheatmap r-rcolorbrewer r-remotes
-        fi
-        if [[ -z "$(conda env list | grep "'/miniconda3/envs/rnaseq'")" ]]; then
-            mamba create -y -n rnaseq -c conda-forge -c anaconda -c bioconda -c defaults fastqc multiqc trimmomatic star
-        fi
+    mamba update -y -n base -c conda-forge -c anaconda -c bioconda -c defaults conda
+    mamba create -y -n sara_dge -c r -c conda-forge -c anaconda -c bioconda -c defaults bioconductor-deseq2 bioconductor-enhancedvolcano bioconductor-genefilter bioconductor-vsn boost-cpp r-ashr r-base=4.1 r-biocmanager r-calibrate r-devtools r-ggplot2 r-gplots r-pheatmap r-rcolorbrewer r-remotes
+    mamba create -y -n sara_prep -c conda-forge -c anaconda -c bioconda -c defaults fastqc multiqc trimmomatic star
+elif [[ -z $(which mamba) ]]; then
+    conda install -y -c conda-forge mamba
+    mamba update -y -n base -c conda-forge -c anaconda -c bioconda -c defaults conda
+    if [[ -z $(conda env list | grep sara_dge) ]]; then
+        mamba create -y -n sara_dge -c r -c conda-forge -c anaconda -c bioconda -c defaults bioconductor-deseq2 bioconductor-enhancedvolcano bioconductor-genefilter bioconductor-vsn boost-cpp r-ashr r-base=4.1 r-biocmanager r-calibrate r-devtools r-ggplot2 r-gplots r-pheatmap r-rcolorbrewer r-remotes
     fi
+    if [[ -z $(conda env list | grep sara_prep) ]]; then
+        mamba create -y -n sara_prep -c conda-forge -c anaconda -c bioconda -c defaults fastqc multiqc trimmomatic star
+    fi
+elif [[ ! -z $(which mamba) ]]; then
+    if [[ -z $(conda env list | grep sara_dge) ]]; then
+        mamba create -y -n sara_dge -c r -c conda-forge -c anaconda -c bioconda -c defaults bioconductor-deseq2 bioconductor-enhancedvolcano bioconductor-genefilter bioconductor-vsn boost-cpp r-ashr r-base=4.1 r-biocmanager r-calibrate r-devtools r-ggplot2 r-gplots r-pheatmap r-rcolorbrewer r-remotes
+    fi
+    if [[ -z $(conda env list | grep sara_prep) ]]; then
+        mamba create -y -n sara_prep -c conda-forge -c anaconda -c bioconda -c defaults fastqc multiqc trimmomatic star
+    fi
+    conda --version && mamba --version | sed '2d' && echo "" && echo "conda environments:" && conda env list | egrep 'sara'
 fi
 
-if [[ -z "$(which featureCounts)" ]]; then
+if [[ -z $(which featureCounts) ]]; then
     FC_VERSION=2.0.3
     cd
     wget https://ufpr.dl.sourceforge.net/project/subread/subread-"$FC_VERSION"/subread-"$FC_VERSION"-source.tar.gz --no-check-certificate
@@ -51,7 +49,7 @@ if [[ -z "$(which featureCounts)" ]]; then
     mv subread-"$FC_VERSION"-source subread-source
     cd subread-source/src
     make -f Makefile.Linux
-    echo 'export PATH=$HOME/subread-source/bin:/usr/local/share/rsi/idl/bin:$PATH' >> $HOME/.${MYSHELL}rc
+    echo 'export PATH=$HOME/subread-source/bin:/usr/local/share/rsi/idl/bin:$PATH' >> $HOME/."$MYSHELL"rc
     export PATH=$HOME/subread-source/bin:/usr/local/share/rsi/idl/bin:$PATH
 else
     featureCounts -v
