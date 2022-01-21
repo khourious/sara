@@ -27,7 +27,7 @@ while getopts "hc:t:u" OPT; do
         h) usage;;
         c) ID="$OPTARG";;
         t) THREADS="$OPTARG";;
-		u) update;;
+        u) update;;
     esac
 done
 
