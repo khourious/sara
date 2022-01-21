@@ -54,4 +54,3 @@ if [[ -z $(which featureCounts) ]]; then
 else
     featureCounts -v
 fi
-
