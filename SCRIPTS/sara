@@ -8,15 +8,26 @@ Usage: "$(basename "$0")" -c <config file name>
 
 -c  Name of CSV file that contains the list of the softwares and the experimental groups.
 -t  Max number of threads (default: all cores).
+-u  Update conda dependencies.
 "
 exit -1
 }
 
-while getopts "hc:t:" OPT; do
+update () {
+
+    mamba update -y -n base -c conda-forge -c anaconda -c bioconda -c defaults conda
+    mamba update -y -n sara_dge -c conda-forge -c anaconda -c bioconda -c defaults --all
+    mamba update -y -n sara_prep -c conda-forge -c anaconda -c bioconda -c defaults --all
+
+exit -1
+}
+
+while getopts "hc:t:u" OPT; do
     case "$OPT" in
         h) usage;;
         c) ID="$OPTARG";;
         t) THREADS="$OPTARG";;
+		u) update;;
     esac
 done
 
