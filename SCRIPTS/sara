@@ -72,7 +72,6 @@ bg() {
             fastqc -t "$THREADS" $(find "$SARA"/ANALYSIS/"$ID"/CONCATENATED -type f -name "*.fastq.gz") -o "$SARA"/ANALYSIS/"$ID"/QC2
             multiqc -s -i ""$ID" CONCATENATED" -ip --no-data-dir -n "$SARA"/ANALYSIS/"$ID"/"$ID"_CONCATENATED_multiqc_report "$SARA"/ANALYSIS/"$ID"/QC2/*
         fi
-
         TRIMM=$(cat "$SARA"/SHEETS/"$ID".csv | sed -n 1p | awk -F, '{print $1}')
         for i in $(find "$SARA"/ANALYSIS/"$ID"/CONCATENATED -type f -name "*.fastq.gz" | awk -F/ '{print $NF}' | awk -F"_S" '{print $1}' | sort -u); do
             source activate sara_prep
@@ -99,6 +98,7 @@ bg() {
                 echo "ATTENTION ON TRIMMING STEP!!! Please check your CSV sheet. The name of the CSV file must corresponds the name of the library and contains comma-separated programs on the first line (i.e. 'trimm,mapping,count,deg). From the second line on, it must contain the list of samples and the condition, also separated by a comma [CTRL are controls; EXP are experimentals]."
             fi
         done
+    fi
 
     REFERENCE=$(cat "$SARA"/SHEETS/"$ID".csv | sed -n 1p | awk -F, '{print $4}')
     if [[ "$REFERENCE" == [Gg][Rr][Cc][Hh][3][8][.][Pp][1][3] ]]; then
