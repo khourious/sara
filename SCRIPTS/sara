@@ -7,7 +7,7 @@ semi automatic RNA-Seq analysis
 Usage: "$(basename "$0")" -c <config file name>
 
 -c  Name of CSV file that contains the list of the softwares and the experimental groups.
--t  Max number of threads (default: all cores).
+-t  Max number of threads (default: all cores minus 2).
 -u  Update conda dependencies.
 "
 exit -1
@@ -25,7 +25,7 @@ exit -1
 while getopts "hc:t:u" OPT; do
     case "$OPT" in
         h) usage;;
-        c) ID="$OPTARG";;
+        c) SHEET="$OPTARG";;
         t) THREADS="$OPTARG";;
         u) update;;
     esac
@@ -33,46 +33,52 @@ done
 
 SARA="$HOME"/sara
 
-ANALYSISDIR="$SARA"/ANALYSIS/"$ID"
+ID=$(basename "$SHEET" | awk -F. '{print $1}')
 
-echo "" && echo "Output path: "$ANALYSISDIR""
-echo "Log Analysis: "$ANALYSISDIR"/"$ID"_log_$(date +'%Y-%m-%d').txt"
+if [ -z "$THREADS" ]; then THREADS=$(lscpu | grep 'CPU(s):' | awk '{print $2}' | sed -n '1p' | awk '{print $1-2}'); fi
 
-[ ! -d "$ANALYSISDIR" ] && mkdir "$SARA"/ANALYSIS "$ANALYSISDIR" "$ANALYSISDIR"/ALIGN "$ANALYSISDIR"/CONCATENATED \
-    "$ANALYSISDIR"/DEG "$ANALYSISDIR"/INDEX "$ANALYSISDIR"/QC1 "$ANALYSISDIR"/QC2 "$ANALYSISDIR"/REFERENCE "$ANALYSISDIR"/TRIMMED
+if [[ -z "$SHEET" ]]; then
+    usage
+else
+    [ ! -d "$SARA"/ANALYSIS ] && mkdir "$SARA"/ANALYSIS
+    [ ! -d "$SARA"/ANALYSIS/"$ID" ] && mkdir "$SARA"/ANALYSIS/"$ID" "$SARA"/ANALYSIS/"$ID"/ALIGN "$SARA"/ANALYSIS/"$ID"/CONCATENATED "$SARA"/ANALYSIS/"$ID"/DEG "$SARA"/ANALYSIS/"$ID"/INDEX "$SARA"/ANALYSIS/"$ID"/QC1 "$SARA"/ANALYSIS/"$ID"/QC2 "$SARA"/ANALYSIS/"$ID"/REFERENCE "$SARA"/ANALYSIS/"$ID"/TRIMMED
+    echo "" && echo "Output path: "$SARA"/ANALYSIS/"$ID""
+    echo "Log Analysis: "$SARA"/ANALYSIS/"$ID"/"$ID"_log_$(date +'%Y-%m-%d').txt"
+    echo "" && echo "To display the log output in fulscreen: watch tail -n 20 "$SARA"/ANALYSIS/"$ID"/"$ID"_log_$(date +'%Y-%m-%d').txt"
+fi
 
 bg() {
 
     start=$(date +%s.%N)
 
-    if [[ -z "$THREADS" ]]; then THREADS=$(lscpu | grep 'CPU(s):' | awk '{print $2}' | sed -n '1p'); fi
-
-    find "$SARA"/RAW/"$ID" -type f -name '*.fastq.gz' -exec cp -vat "$ANALYSISDIR" {} +
-
-    for i in $(find "$ANALYSISDIR" -type f -name "*.fastq.gz" | awk -F/ '{print $NF}' | awk -F"_L" '{print $1}' | \
-        sort -u); do
-            cat "$ANALYSISDIR"/"$i"_L00*_R1_001.fastq.gz > "$ANALYSISDIR"/CONCATENATED/"$i"_R1.fastq.gz
-            cat "$ANALYSISDIR"/"$i"_L00*_R2_001.fastq.gz > "$ANALYSISDIR"/CONCATENATED/"$i"_R2.fastq.gz
-    done
-
-    rm "$ANALYSISDIR"/*_001.fastq.gz
-
-    source activate rnaseq
-
-    fastqc -t "$THREADS" $(find "$SARA"/RAW/"$ID" -type f -name "*.fastq.gz") -o "$ANALYSISDIR"/QC1
-    fastqc -t "$THREADS" $(find "$ANALYSISDIR"/CONCATENATED -type f -name "*.fastq.gz") -o "$ANALYSISDIR"/QC2
-
-    multiqc -s -i ""$ID" RAW" -ip --no-data-dir -n "$ANALYSISDIR"/"$ID"_RAW_multiqc_report "$ANALYSISDIR"/QC1/*
-    multiqc -s -i ""$ID" CONCATENATED" -ip --no-data-dir -n "$ANALYSISDIR"/"$ID"_CONCATENATED_multiqc_report \
-        "$ANALYSISDIR"/QC2/*
-
+    if [[ -z "$SHEET" ]]; then
+        usage
+    else
+        if [[ ! $(ls "$SARA"/ANALYSIS/"$ID"/CONCATENATED) ]]; then
+            find "$SARA"/RAW/"$ID" -type f -name '*.fastq.gz' -exec cp -vat "$SARA"/ANALYSIS/"$ID" {} +
+                for i in $(find "$SARA"/ANALYSIS/"$ID" -type f -name "*.fastq.gz" | awk -F/ '{print $NF}' | awk -F'_L' '{print $1}' | sort -u); do
+                    cat "$SARA"/ANALYSIS/"$ID"/"$i"_L00*_R1_001.fastq.gz > "$SARA"/ANALYSIS/"$ID"/CONCATENATED/"$i"_R1.fastq.gz
+                    cat "$SARA"/ANALYSIS/"$ID"/"$i"_L00*_R2_001.fastq.gz > "$SARA"/ANALYSIS/"$ID"/CONCATENATED/"$i"_R2.fastq.gz
+                done
+            rm "$SARA"/ANALYSIS/"$ID"/*_001.fastq.gz
+        fi
+        if [[ ! $(ls "$SARA"/ANALYSIS/"$ID"/QC1) ]]; then
+            source activate sara_prep
+            fastqc -t "$THREADS" $(find "$SARA"/RAW/"$ID" -type f -name "*.fastq.gz") -o "$SARA"/ANALYSIS/"$ID"/QC1
+            multiqc -s -i ""$ID" RAW" -ip --no-data-dir -n "$SARA"/ANALYSIS/"$ID"/"$ID"_RAW_multiqc_report "$SARA"/ANALYSIS/"$ID"/QC1/*
+        fi
+        if [[ ! $(ls "$SARA"/ANALYSIS/"$ID"/QC2) ]]; then
+            source activate sara_prep
+            fastqc -t "$THREADS" $(find "$SARA"/ANALYSIS/"$ID"/CONCATENATED -type f -name "*.fastq.gz") -o "$SARA"/ANALYSIS/"$ID"/QC2
+            multiqc -s -i ""$ID" CONCATENATED" -ip --no-data-dir -n "$SARA"/ANALYSIS/"$ID"/"$ID"_CONCATENATED_multiqc_report "$SARA"/ANALYSIS/"$ID"/QC2/*
+        fi
     TRIMM=$(cat "$SARA"/SHEETS/"$ID".csv | sed -n 1p | awk -F, '{print $3}')
     if [[ "$TRIMM" == [Tt][Rr][Ii][Mm][Mm][Oo][Mm][Aa][Tt][Ii][Cc] ]]; then
-        for i in $(find "$ANALYSISDIR"/CONCATENATED -type f -name "*.fastq.gz" | awk -F/ '{print $NF}' | awk -F'_S' '{print $1}' | sort -u); do
+        for i in $(find "$SARA"/ANALYSIS/"$ID"/CONCATENATED -type f -name "*.fastq.gz" | awk -F/ '{print $NF}' | awk -F'_S' '{print $1}' | sort -u); do
             trimmomatic PE -threads "$THREADS" -phred33 \
-            "$ANALYSISDIR"/CONCATENATED/"$i"*R1.fastq.gz "$ANALYSISDIR"/CONCATENATED/"$i"*R2.fastq.gz \
-            "$ANALYSISDIR"/TRIMMED/"$i"_R1_PAIRED.fastq.gz "$ANALYSISDIR"/TRIMMED/"$i"_R1_UNPAIRED.fastq.gz \
-            "$ANALYSISDIR"/TRIMMED/"$i"_R2_PAIRED.fastq.gz "$ANALYSISDIR"/TRIMMED/"$i"_R2_UNPAIRED.fastq.gz \
+            "$SARA"/ANALYSIS/"$ID"/CONCATENATED/"$i"*R1.fastq.gz "$SARA"/ANALYSIS/"$ID"/CONCATENATED/"$i"*R2.fastq.gz \
+            "$SARA"/ANALYSIS/"$ID"/TRIMMED/"$i"_R1_PAIRED.fastq.gz "$SARA"/ANALYSIS/"$ID"/TRIMMED/"$i"_R1_UNPAIRED.fastq.gz \
+            "$SARA"/ANALYSIS/"$ID"/TRIMMED/"$i"_R2_PAIRED.fastq.gz "$SARA"/ANALYSIS/"$ID"/TRIMMED/"$i"_R2_UNPAIRED.fastq.gz \
             LEADING:3 TRAILING:3 SLIDINGWINDOW:4:25 MINLEN:36
         done
     fi
@@ -80,40 +86,40 @@ bg() {
     REFERENCE=$(cat "$SARA"/SHEETS/"$ID".csv | sed -n 1p | awk -F, '{print $4}')
     if [[ "$REFERENCE" == [Gg][Rr][Cc][Hh][3][8][.][Pp][1][3] ]]; then
         wget http://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_38/GRCh38.p13.genome.fa.gz -q \
-        -O "$ANALYSISDIR"/REFERENCE/"$REFERENCE".fa.gz
+        -O "$SARA"/ANALYSIS/"$ID"/REFERENCE/"$REFERENCE".fa.gz
         wget http://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_38/gencode.v38.chr_patch_hapl_scaff.annotation.gtf.gz -q \
-        -O "$ANALYSISDIR"/REFERENCE/"$REFERENCE".gtf.gz
-        gunzip "$ANALYSISDIR"/REFERENCE/"$REFERENCE".fa.gz
-        gunzip "$ANALYSISDIR"/REFERENCE/"$REFERENCE".gtf.gz
+        -O "$SARA"/ANALYSIS/"$ID"/REFERENCE/"$REFERENCE".gtf.gz
+        gunzip "$SARA"/ANALYSIS/"$ID"/REFERENCE/"$REFERENCE".fa.gz
+        gunzip "$SARA"/ANALYSIS/"$ID"/REFERENCE/"$REFERENCE".gtf.gz
     else
         if [[ "$REFERENCE" == [Gg][Rr][Cc][Hh][3][7] ]]; then
         wget http://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_38/GRCh37_mapping/GRCh37.primary_assembly.genome.fa.gz -q \
-        -O "$ANALYSISDIR"/REFERENCE/"$REFERENCE".fa.gz
+        -O "$SARA"/ANALYSIS/"$ID"/REFERENCE/"$REFERENCE".fa.gz
         wget http://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_38/GRCh37_mapping/gencode.v38lift37.annotation.gtf.gz -q \
-        -O "$ANALYSISDIR"/REFERENCE/"$REFERENCE".gtf.gz
-        gunzip "$ANALYSISDIR"/REFERENCE/"$REFERENCE".fa.gz
-        gunzip "$ANALYSISDIR"/REFERENCE/"$REFERENCE".gtf.gz
+        -O "$SARA"/ANALYSIS/"$ID"/REFERENCE/"$REFERENCE".gtf.gz
+        gunzip "$SARA"/ANALYSIS/"$ID"/REFERENCE/"$REFERENCE".fa.gz
+        gunzip "$SARA"/ANALYSIS/"$ID"/REFERENCE/"$REFERENCE".gtf.gz
         fi
     fi
 
     MAPPING=$(cat "$SARA"/SHEETS/"$ID".csv | sed -n 1p | awk -F, '{print $5}')
     if [[ "$MAPPING" == [Ss][Tt][Aa][Rr] ]]; then
-        STAR --runThreadN "$THREADS" --runMode genomeGenerate --genomeDir "$ANALYSISDIR"/INDEX \
-            --genomeFastaFiles "$ANALYSISDIR"/REFERENCE/"$REFERENCE".fa
-        for i in $(find "$ANALYSISDIR"/TRIMMED -type f -name "*.fastq.gz" | awk -F/ '{print $NF}' | awk -F'_' '{print $1}' | sort -u); do
-            STAR --runThreadN "$THREADS" --runMode alignReads --genomeDir "$ANALYSISDIR"/INDEX \
-            --sjdbGTFfile "$ANALYSISDIR"/REFERENCE/"$REFERENCE".gtf \
-            --readFilesIn "$ANALYSISDIR"/TRIMMED/"$i"_R1_PAIRED.fastq.gz \
-            "$ANALYSISDIR"/TRIMMED/"$i"_R2_PAIRED.fastq.gz --readFilesCommand zcat \
-            --outFileNamePrefix "$ANALYSISDIR"/ALIGN/"$i"_ --outSAMtype BAM Unsorted --outReadsUnmapped Fastx
+        STAR --runThreadN "$THREADS" --runMode genomeGenerate --genomeDir "$SARA"/ANALYSIS/"$ID"/INDEX \
+            --genomeFastaFiles "$SARA"/ANALYSIS/"$ID"/REFERENCE/"$REFERENCE".fa
+        for i in $(find "$SARA"/ANALYSIS/"$ID"/TRIMMED -type f -name "*.fastq.gz" | awk -F/ '{print $NF}' | awk -F'_' '{print $1}' | sort -u); do
+            STAR --runThreadN "$THREADS" --runMode alignReads --genomeDir "$SARA"/ANALYSIS/"$ID"/INDEX \
+            --sjdbGTFfile "$SARA"/ANALYSIS/"$ID"/REFERENCE/"$REFERENCE".gtf \
+            --readFilesIn "$SARA"/ANALYSIS/"$ID"/TRIMMED/"$i"_R1_PAIRED.fastq.gz \
+            "$SARA"/ANALYSIS/"$ID"/TRIMMED/"$i"_R2_PAIRED.fastq.gz --readFilesCommand zcat \
+            --outFileNamePrefix "$SARA"/ANALYSIS/"$ID"/ALIGN/"$i"_ --outSAMtype BAM Unsorted --outReadsUnmapped Fastx
         done
     fi
 
     COUNT=$(cat "$SARA"/SHEETS/"$ID".csv | sed -n 1p | awk -F, '{print $6}')
     if [[ "$COUNT" == [Ff][Ee][Aa][Tt][Uu][Rr][Ee][Cc][Oo][Uu][Nn][Tt][Ss] ]]; then
-        featureCounts -a "$ANALYSISDIR"/REFERENCE/"$REFERENCE".gtf -o "$ANALYSISDIR"/"$ID"_counts.txt \
-        -s 2 -G "$ANALYSISDIR"/REFERENCE/"$REFERENCE".fa -p --countReadPairs -C -T "$THREADS" \
-        $(cat "$SARA"/SHEETS/"$ID".csv | sed '1d' | awk -F, -v ALIGN_PATH="$ANALYSISDIR"/ALIGN/ '$2~/EXP|CTRL/ \
+        featureCounts -a "$SARA"/ANALYSIS/"$ID"/REFERENCE/"$REFERENCE".gtf -o "$SARA"/ANALYSIS/"$ID"/"$ID"_counts.txt \
+        -s 2 -G "$SARA"/ANALYSIS/"$ID"/REFERENCE/"$REFERENCE".fa -p --countReadPairs -C -T "$THREADS" \
+        $(cat "$SARA"/SHEETS/"$ID".csv | sed '1d' | awk -F, -v ALIGN_PATH="$SARA"/ANALYSIS/"$ID"/ALIGN/ '$2~/EXP|CTRL/ \
             {print ALIGN_PATH $1"_Aligned.out.bam"}' | xargs)
     fi
 
@@ -121,9 +127,9 @@ bg() {
 
     DEG=$(cat "$SARA"/SHEETS/"$ID".csv | sed -n 1p | awk -F, '{print $7}')
     if [[ "$DEG" == [Dd][Ee][Ss][Ee][Qq][2] ]]; then
-        OUTPUT_PATH="$ANALYSISDIR"/DEG
-        COUNTDATA="$ANALYSISDIR"/"$ID"_counts.txt
-        HEADER=$(echo "$ANALYSISDIR"/ALIGN/ | tr / . | sed 's/.home/X.home/g')
+        OUTPUT_PATH="$SARA"/ANALYSIS/"$ID"/DEG
+        COUNTDATA="$SARA"/ANALYSIS/"$ID"/"$ID"_counts.txt
+        HEADER=$(echo "$SARA"/ANALYSIS/"$ID"/ALIGN/ | tr / . | sed 's/.home/X.home/g')
         EXP_GROUP=$(cat "$SARA"/SHEETS/"$ID".csv | sed 1d | awk -F, '$2~/EXP/ {print $1}' | wc -l)
         CTRL_GROUP=$(cat "$SARA"/SHEETS/"$ID".csv | sed 1d | awk -F, '$2~/CTRL/ {print $1}' | wc -l)
         SMALL_GROUP=$(if [ $COUNTEXP -le $COUNTCTRL ]; then echo $COUNTEXP; else echo $COUNTCTRL;fi)
@@ -138,6 +144,6 @@ bg() {
 
 }
 
-bg $1 &>>"$ANALYSISDIR"/"$ID"_log_$(date +'%Y-%m-%d').txt &
+bg &>>"$SARA"/ANALYSIS/"$ID"/"$ID"_log_$(date +'%Y-%m-%d').txt &
 
 exit 0
