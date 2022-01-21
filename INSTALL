@@ -19,23 +19,23 @@ if [[ -z $(which conda) ]]; then
     export PATH=$HOME/miniconda3/bin:/usr/local/share/rsi/idl/bin:$PATH
     conda install -y -c conda-forge mamba
     mamba update -y -n base -c conda-forge -c anaconda -c bioconda -c defaults conda
-    mamba create -y -n sara_dge -c r -c conda-forge -c anaconda -c bioconda -c defaults bioconductor-deseq2 bioconductor-enhancedvolcano bioconductor-genefilter bioconductor-vsn boost-cpp r-ashr r-base=4.1 r-biocmanager r-calibrate r-devtools r-ggplot2 r-gplots r-pheatmap r-rcolorbrewer r-remotes
-    mamba create -y -n sara_prep -c conda-forge -c anaconda -c bioconda -c defaults fastqc multiqc trimmomatic star
+    mamba create -y -n sara_dge -c r -c conda-forge -c anaconda -c bioconda -c defaults bioconductor-deseq2 bioconductor-edger bioconductor-enhancedvolcano bioconductor-genefilter bioconductor-vsn boost-cpp r-ashr r-base=4.1 r-biocmanager r-calibrate r-devtools r-ggplot2 r-gplots r-pheatmap r-rcolorbrewer r-remotes
+    mamba create -y -n sara_prep -c conda-forge -c anaconda -c bioconda -c defaults bowtie2 fastp fastqc hisat2 multiqc rsem trimmomatic star
 elif [[ -z $(which mamba) ]]; then
     conda install -y -c conda-forge mamba
     mamba update -y -n base -c conda-forge -c anaconda -c bioconda -c defaults conda
     if [[ -z $(conda env list | grep sara_dge) ]]; then
-        mamba create -y -n sara_dge -c r -c conda-forge -c anaconda -c bioconda -c defaults bioconductor-deseq2 bioconductor-enhancedvolcano bioconductor-genefilter bioconductor-vsn boost-cpp r-ashr r-base=4.1 r-biocmanager r-calibrate r-devtools r-ggplot2 r-gplots r-pheatmap r-rcolorbrewer r-remotes
+        mamba create -y -n sara_dge -c r -c conda-forge -c anaconda -c bioconda -c defaults bioconductor-deseq2 bioconductor-edger bioconductor-enhancedvolcano bioconductor-genefilter bioconductor-vsn boost-cpp r-ashr r-base=4.1 r-biocmanager r-calibrate r-devtools r-ggplot2 r-gplots r-pheatmap r-rcolorbrewer r-remotes
     fi
     if [[ -z $(conda env list | grep sara_prep) ]]; then
-        mamba create -y -n sara_prep -c conda-forge -c anaconda -c bioconda -c defaults fastqc multiqc trimmomatic star
+        mamba create -y -n sara_prep -c conda-forge -c anaconda -c bioconda -c defaults bowtie2 fastp fastqc hisat2 multiqc rsem trimmomatic star
     fi
 elif [[ ! -z $(which mamba) ]]; then
     if [[ -z $(conda env list | grep sara_dge) ]]; then
-        mamba create -y -n sara_dge -c r -c conda-forge -c anaconda -c bioconda -c defaults bioconductor-deseq2 bioconductor-enhancedvolcano bioconductor-genefilter bioconductor-vsn boost-cpp r-ashr r-base=4.1 r-biocmanager r-calibrate r-devtools r-ggplot2 r-gplots r-pheatmap r-rcolorbrewer r-remotes
+        mamba create -y -n sara_dge -c r -c conda-forge -c anaconda -c bioconda -c defaults bioconductor-deseq2 bioconductor-edger bioconductor-enhancedvolcano bioconductor-genefilter bioconductor-vsn boost-cpp r-ashr r-base=4.1 r-biocmanager r-calibrate r-devtools r-ggplot2 r-gplots r-pheatmap r-rcolorbrewer r-remotes
     fi
     if [[ -z $(conda env list | grep sara_prep) ]]; then
-        mamba create -y -n sara_prep -c conda-forge -c anaconda -c bioconda -c defaults fastqc multiqc trimmomatic star
+        mamba create -y -n sara_prep -c conda-forge -c anaconda -c bioconda -c defaults bowtie2 fastp fastqc hisat2 multiqc rsem trimmomatic star
     fi
     conda --version && mamba --version | sed '2d' && echo "" && echo "conda environments:" && conda env list | egrep 'sara'
 fi
@@ -54,3 +54,4 @@ if [[ -z $(which featureCounts) ]]; then
 else
     featureCounts -v
 fi
+
