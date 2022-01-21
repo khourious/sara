@@ -43,8 +43,8 @@ else
     [ ! -d "$SARA"/ANALYSIS ] && mkdir "$SARA"/ANALYSIS
     [ ! -d "$SARA"/ANALYSIS/"$ID" ] && mkdir "$SARA"/ANALYSIS/"$ID" "$SARA"/ANALYSIS/"$ID"/ALIGN "$SARA"/ANALYSIS/"$ID"/CONCATENATED "$SARA"/ANALYSIS/"$ID"/DEG "$SARA"/ANALYSIS/"$ID"/INDEX "$SARA"/ANALYSIS/"$ID"/QC1 "$SARA"/ANALYSIS/"$ID"/QC2 "$SARA"/ANALYSIS/"$ID"/REFERENCE "$SARA"/ANALYSIS/"$ID"/TRIMMED
     echo "" && echo "Output path: "$SARA"/ANALYSIS/"$ID""
-    echo "Log Analysis: "$SARA"/ANALYSIS/"$ID"/"$ID"_log_$(date +'%Y-%m-%d').txt"
-    echo "" && echo "To display the log output in fulscreen: watch tail -n 20 "$SARA"/ANALYSIS/"$ID"/"$ID"_log_$(date +'%Y-%m-%d').txt"
+    echo "Log Analysis: "$SARA"/ANALYSIS/"$ID"/"$ID"_log_$(uname -n)_$(date +'%Y-%m-%d').txt"
+    echo "" && echo "To display the log output in fulscreen: watch tail -n 20 "$SARA"/ANALYSIS/"$ID"/"$ID"_log_$(uname -n)_$(date +'%Y-%m-%d').txt"
 fi
 
 bg() {
@@ -76,24 +76,28 @@ bg() {
         for i in $(find "$SARA"/ANALYSIS/"$ID"/CONCATENATED -type f -name "*.fastq.gz" | awk -F/ '{print $NF}' | awk -F"_S" '{print $1}' | sort -u); do
             source activate sara_prep
             if [[ "$TRIMM" == [Ff][Aa][Ss][Tt][Pp] ]]; then
-                fastp -w "$THREADS" -3 -5 -W 4 -M 25 -l 36 \
-                    --in1 "$SARA"/ANALYSIS/"$ID"/CONCATENATED/"$i"*R1.fastq.gz \
-                    --in2 "$SARA"/ANALYSIS/"$ID"/CONCATENATED/"$i"*R2.fastq.gz \
-                    --out1 "$SARA"/ANALYSIS/"$ID"/TRIMMED/"$i"_R1_PAIRED_FP.fastq.gz \
-                    --out2 "$SARA"/ANALYSIS/"$ID"/TRIMMED/"$i"_R2_PAIRED_FP.fastq.gz \
-                    --unpaired1 "$SARA"/ANALYSIS/"$ID"/TRIMMED/"$i"_R1_UNPAIRED_FP.fastq.gz \
-                    --unpaired2 "$SARA"/ANALYSIS/"$ID"/TRIMMED/"$i"_R2_UNPAIRED_FP.fastq.gz \
-                    -j "$SARA"/ANALYSIS/"$ID"/TRIMMED/"$i"_fastp.json \
-                    -h "$SARA"/ANALYSIS/"$ID"/TRIMMED/"$i"_fastp.html -R ""$i" fastp report"
+                if [[ ! $(ls *FP*) ]]; then
+                    fastp -w "$THREADS" -3 -5 -W 4 -M 25 -l 36 \
+                        --in1 "$SARA"/ANALYSIS/"$ID"/CONCATENATED/"$i"*R1.fastq.gz \
+                        --in2 "$SARA"/ANALYSIS/"$ID"/CONCATENATED/"$i"*R2.fastq.gz \
+                        --out1 "$SARA"/ANALYSIS/"$ID"/TRIMMED/"$i"_R1_PAIRED_FP.fastq.gz \
+                        --out2 "$SARA"/ANALYSIS/"$ID"/TRIMMED/"$i"_R2_PAIRED_FP.fastq.gz \
+                        --unpaired1 "$SARA"/ANALYSIS/"$ID"/TRIMMED/"$i"_R1_UNPAIRED_FP.fastq.gz \
+                        --unpaired2 "$SARA"/ANALYSIS/"$ID"/TRIMMED/"$i"_R2_UNPAIRED_FP.fastq.gz \
+                        -j "$SARA"/ANALYSIS/"$ID"/TRIMMED/"$i"_fastp.json \
+                        -h "$SARA"/ANALYSIS/"$ID"/TRIMMED/"$i"_fastp.html -R ""$i" fastp report"
+                fi
             elif [[ "$TRIMM" == [Tt][Rr][Ii][Mm][Mm][Oo][Mm][Aa][Tt][Ii][Cc] ]]; then
-                trimmomatic PE -threads "$THREADS" -phred33 \
-                    "$SARA"/ANALYSIS/"$ID"/CONCATENATED/"$i"*R1.fastq.gz \
-                    "$SARA"/ANALYSIS/"$ID"/CONCATENATED/"$i"*R2.fastq.gz \
-                    "$SARA"/ANALYSIS/"$ID"/TRIMMED/"$i"_R1_PAIRED_TM.fastq.gz \
-                    "$SARA"/ANALYSIS/"$ID"/TRIMMED/"$i"_R1_UNPAIRED_TM.fastq.gz \
-                    "$SARA"/ANALYSIS/"$ID"/TRIMMED/"$i"_R2_PAIRED_TM.fastq.gz \
-                    "$SARA"/ANALYSIS/"$ID"/TRIMMED/"$i"_R2_UNPAIRED_TM.fastq.gz \
-                    LEADING:3 TRAILING:3 SLIDINGWINDOW:4:25 MINLEN:36
+                if [[ ! $(ls *TM*) ]]; then
+                    trimmomatic PE -threads "$THREADS" -phred33 \
+                        "$SARA"/ANALYSIS/"$ID"/CONCATENATED/"$i"*R1.fastq.gz \
+                        "$SARA"/ANALYSIS/"$ID"/CONCATENATED/"$i"*R2.fastq.gz \
+                        "$SARA"/ANALYSIS/"$ID"/TRIMMED/"$i"_R1_PAIRED_TM.fastq.gz \
+                        "$SARA"/ANALYSIS/"$ID"/TRIMMED/"$i"_R1_UNPAIRED_TM.fastq.gz \
+                        "$SARA"/ANALYSIS/"$ID"/TRIMMED/"$i"_R2_PAIRED_TM.fastq.gz \
+                        "$SARA"/ANALYSIS/"$ID"/TRIMMED/"$i"_R2_UNPAIRED_TM.fastq.gz \
+                        LEADING:3 TRAILING:3 SLIDINGWINDOW:4:25 MINLEN:36
+                fi
             else
                 echo "ATTENTION ON TRIMMING STEP!!! Please check your CSV sheet. The name of the CSV file must corresponds the name of the library and contains comma-separated programs on the first line (i.e. 'trimm,mapping,count,deg). From the second line on, it must contain the list of samples and the condition, also separated by a comma [CTRL are controls; EXP are experimentals]."
             fi
@@ -161,6 +165,6 @@ bg() {
 
 }
 
-bg &>>"$SARA"/ANALYSIS/"$ID"/"$ID"_log_$(date +'%Y-%m-%d').txt &
+bg &>>"$SARA"/ANALYSIS/"$ID"/"$ID"_log_$(uname -n)_$(date +'%Y-%m-%d').txt &
 
 exit 0
