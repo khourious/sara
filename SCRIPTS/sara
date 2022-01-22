@@ -54,6 +54,7 @@ bg() {
     if [[ -z "$SHEET" ]]; then
         usage
     else
+        source activate sara_prep
         if [[ ! $(ls "$SARA"/ANALYSIS/"$ID"/CONCATENATED) ]]; then
             find "$SARA"/RAW/"$ID" -type f -name '*.fastq.gz' -exec cp -vat "$SARA"/ANALYSIS/"$ID" {} +
                 for i in $(find "$SARA"/ANALYSIS/"$ID" -type f -name "*.fastq.gz" | awk -F/ '{print $NF}' | awk -F'_L' '{print $1}' | sort -u); do
@@ -63,18 +64,15 @@ bg() {
             rm "$SARA"/ANALYSIS/"$ID"/*_001.fastq.gz
         fi
         if [[ ! $(ls "$SARA"/ANALYSIS/"$ID"/QC1) ]]; then
-            source activate sara_prep
             fastqc -t "$THREADS" $(find "$SARA"/RAW/"$ID" -type f -name "*.fastq.gz") -o "$SARA"/ANALYSIS/"$ID"/QC1
             multiqc -s -i ""$ID" RAW" -ip --no-data-dir -n "$SARA"/ANALYSIS/"$ID"/"$ID"_RAW_multiqc_report "$SARA"/ANALYSIS/"$ID"/QC1/*
         fi
         if [[ ! $(ls "$SARA"/ANALYSIS/"$ID"/QC2) ]]; then
-            source activate sara_prep
             fastqc -t "$THREADS" $(find "$SARA"/ANALYSIS/"$ID"/CONCATENATED -type f -name "*.fastq.gz") -o "$SARA"/ANALYSIS/"$ID"/QC2
             multiqc -s -i ""$ID" CONCATENATED" -ip --no-data-dir -n "$SARA"/ANALYSIS/"$ID"/"$ID"_CONCATENATED_multiqc_report "$SARA"/ANALYSIS/"$ID"/QC2/*
         fi
         TRIMM=$(cat "$SARA"/SHEETS/"$ID".csv | sed -n 1p | awk -F, '{print $1}')
         for i in $(find "$SARA"/ANALYSIS/"$ID"/CONCATENATED -type f -name "*.fastq.gz" | awk -F/ '{print $NF}' | awk -F"_S" '{print $1}' | sort -u); do
-            source activate sara_prep
             if [[ "$TRIMM" == [Ff][Aa][Ss][Tt][Pp] ]]; then
                 if [[ ! $(ls *FP*) ]]; then
                     fastp -w "$THREADS" -3 -5 -W 4 -M 25 -l 36 \
