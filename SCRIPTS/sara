@@ -100,7 +100,6 @@ bg() {
                 echo "ATTENTION ON TRIMMING STEP!!! Please check your CSV sheet. The name of the CSV file must corresponds the name of the library and contains comma-separated programs on the first line (i.e. 'trimm,mapping,count,deg). From the second line on, it must contain the list of samples and the condition, also separated by a comma [CTRL are controls; EXP are experimentals]."
             fi
         done
-    fi
 
         REFERENCE=$(cat "$SARA"/SHEETS/"$ID".csv | sed -n 1p | awk -F, '{print $2}')
         if [[ "$REFERENCE" == [Gg][Rr][Cc][Hh][3][7] ]]; then # https://www.gencodegenes.org/human/release_39lift37.html
@@ -134,6 +133,7 @@ bg() {
         else
             echo "ATTENTION ON REFERENCE DOWNLOAD STEP!!! Please check your CSV sheet. The name of the CSV file must corresponds the name of the library and contains comma-separated programs on the first line (i.e. 'trimm,mapping,count,deg). From the second line on, it must contain the list of samples and the condition, also separated by a comma [CTRL are controls; EXP are experimentals]."
         fi
+    fi
 
     MAPPING=$(cat "$SARA"/SHEETS/"$ID".csv | sed -n 1p | awk -F, '{print $5}')
     if [[ "$MAPPING" == [Ss][Tt][Aa][Rr] ]]; then
