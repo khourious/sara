@@ -1,6 +1,6 @@
 #!/bin/bash
 
-chmod 700 -R $HOME/sara/SCRIPTS
+chmod 700 -R $HOME/sara/scripts
 
 MYSHELL=$(echo $SHELL | awk -F/ '{print $NF}')
 
