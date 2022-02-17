@@ -55,19 +55,19 @@ bg() {
     else
         [[ ! -d "$SARA"/analysis/"$ID"/concatenated ]] && mkdir "$SARA"/analysis/"$ID"/concatenated
         if [[ ! $(ls -R "$SARA"/analysis/"$ID"/concatenated 2>/dev/null | grep fastq) ]]; then
-            if [[ $(find "$SARA"/raw/"$ID" -type f -name '*_L00*') ]]; then
-                find "$SARA"/raw/"$ID" -type f -name '*.fastq.gz' -exec cp -vat "$SARA"/analysis/"$ID" {} +
-                    for i in $(find "$SARA"/analysis/"$ID" -type f -name "*.fastq.gz" | awk -F/ '{print $NF}' | awk -F'_L' '{print $1}' | sort -u); do
-                        cat "$SARA"/analysis/"$ID"/"$i"_L00*_R1_001.fastq.gz > "$SARA"/analysis/"$ID"/concatenated/"$i".R1.fastq.gz
-                        cat "$SARA"/analysis/"$ID"/"$i"_L00*_R2_001.fastq.gz > "$SARA"/analysis/"$ID"/concatenated/"$i".R2.fastq.gz
-                    done
-                rm "$SARA"/analysis/"$ID"/*_001.fastq.gz
+            find "$SARA"/raw/"$ID" -type f -name '*.fastq.gz' -exec cp -vat "$SARA"/analysis/"$ID" {} +
+            if [[ $(find "$SARA"/analysis/"$ID" -type f -name '*_L00*') ]]; then
+                for i in $(find "$SARA"/analysis/"$ID" -type f -name "*.fastq.gz" | awk -F/ '{print $NF}' | awk -F'_L' '{print $1}' | sort -u); do
+                    cat "$SARA"/analysis/"$ID"/"$i"_L00*_R1_001.fastq.gz > "$SARA"/analysis/"$ID"/concatenated/"$i".R1.fastq.gz
+                    cat "$SARA"/analysis/"$ID"/"$i"_L00*_R2_001.fastq.gz > "$SARA"/analysis/"$ID"/concatenated/"$i".R2.fastq.gz
+                done
+                rm "$SARA"/analysis/"$ID"/*_L00*
             elif [[ $(find "$SARA"/raw/"$ID" -type f -name '*_1.fastq.gz') ]]; then
-                find "$SARA"/raw/"$ID" -type f -name '*.fastq.gz' -exec cp -vat "$SARA"/analysis/"$ID" {} +
-                    for i in $(find "$SARA"/analysis/"$ID" -type f -name "*.fastq.gz" | awk -F/ '{print $NF}' | awk -F'_' '{print $1}' | sort -u); do
-                        cat "$SARA"/analysis/"$ID"/"$i"_1.fastq.gz > "$SARA"/analysis/"$ID"/concatenated/"$i".R1.fastq.gz
-                        cat "$SARA"/analysis/"$ID"/"$i"_2.fastq.gz > "$SARA"/analysis/"$ID"/concatenated/"$i".R2.fastq.gz
-                    done
+                for i in $(find "$SARA"/analysis/"$ID" -type f -name "*.fastq.gz" | awk -F/ '{print $NF}' | awk -F'_' '{print $1}' | sort -u); do
+                    cat "$SARA"/analysis/"$ID"/"$i"_1.fastq.gz > "$SARA"/analysis/"$ID"/concatenated/"$i".R1.fastq.gz
+                    cat "$SARA"/analysis/"$ID"/"$i"_2.fastq.gz > "$SARA"/analysis/"$ID"/concatenated/"$i".R2.fastq.gz
+                done
+                rm "$SARA"/analysis/"$ID"/*_1.fastq.gz
             fi
         fi
         [[ ! -d "$SARA"/analysis/"$ID"/qc1 ]] && mkdir "$SARA"/analysis/"$ID"/qc1
