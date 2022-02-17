@@ -1,4 +1,4 @@
-fastqc,multiqc,trimmomatic,GRCh38.p13,star,featurecounts,deseq2
+trimmomatic,GRCh38,star,featurecounts,deseq2
 SAMPLE01,EXP
 SAMPLE02,EXP
 SAMPLE03,EXP
