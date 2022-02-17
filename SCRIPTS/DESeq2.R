@@ -104,7 +104,7 @@ pdf("qc-pca.pdf", 50, 50, pointsize=70)
 rld_pca(rld, colors=mycols, intgroup="condition", xlim=c(-35, 45))
 dev.off()
 
-# decrease the fold change noise with shrinkage function 
+# decrease the fold change noise with shrinkage function
 resShrink <- lfcShrink(dds,contrast=c("condition","EXP","CTRL"),type="ashr")
 
 # MA plot of the effect of the shrinkage correction
