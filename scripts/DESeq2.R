@@ -4,15 +4,18 @@
 if(!interactive()) pdf(NULL)
 
 # load R packages
-library("DESeq2")
-library("calibrate")
-library("genefilter")
-library("gplots")
-library("EnhancedVolcano")
-library("RColorBrewer")
+library(DESeq2)
+library(calibrate)
+library(genefilter)
+library(gplots)
+library(EnhancedVolcano)
+library(RColorBrewer)
 
 # get the input passed from the shell script
-args <- commandArgs(trailingOnly=TRUE)
+args <- commandArgs(TRUE)
+args5 <- as.integer(args[5])
+args6 <- as.integer(args[6])
+args7 <- as.integer(args[7])
 print(args)
 
 # set working directory
@@ -26,7 +29,8 @@ countdata <- countdata[, 6:ncol(countdata)]
 
 # remove prefix and suffix from filename
 colnames(countdata) <- gsub(args[3], "", colnames(countdata))
-colnames(countdata) <- gsub("_Aligned.out.bam", "", colnames(countdata))
+colnames(countdata) <- gsub(args[4], "", colnames(countdata))
+colnames(countdata) <- gsub(".Aligned.out.bam", "", colnames(countdata))
 
 # convert to matrix
 countdata <- as.matrix(countdata)
@@ -35,7 +39,7 @@ head(countdata)
 # assign condition
 # first "(rep(x)" contains the experiment [exp]
 # second "(rep(x)" are controls [ctrl])
-(condition <- factor(c(rep("EXP", args[4]), rep("CTRL", args[5]))))
+(condition <- factor(c(rep("EXP", args5), rep("CTRL", args6))))
 
 # create a coldata frame
 (coldata <- data.frame(row.names=colnames(countdata), condition))
@@ -48,7 +52,7 @@ dds <- estimateSizeFactors(dds)
 counts(dds, normalized=TRUE)
 
 # idx <- rowSums(counts(dds,normalized=TRUE)>=5)>=N, which "N" is the number of samples in the smallest group [exp or ctrl]
-idx <- rowSums(counts(dds, normalized=TRUE) >= 5) >=args[6]
+idx <- rowSums(counts(dds, normalized=TRUE) >=5) >=args7
 dds <- dds[idx,]
 
 # run the DESeq pipeline
