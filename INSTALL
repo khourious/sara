@@ -7,7 +7,7 @@ MYSHELL=$(echo $SHELL | awk -F/ '{print $NF}')
 sudo apt-get install libz-dev
 
 if [[ -z $(which sara) ]]; then
-    echo 'export PATH=$HOME/sara/SCRIPTS:/usr/local/share/rsi/idl/bin:$PATH' >> $HOME/."$MYSHELL"rc
+    echo 'export PATH=$HOME/sara/scripts:/usr/local/share/rsi/idl/bin:$PATH' >> $HOME/."$MYSHELL"rc
 fi
 
 if [[ -z $(which conda) ]]; then
