@@ -173,12 +173,12 @@ bg() {
             fi
             for i in $(find "$SARA"/analysis/"$ID"/trimmed -type f -name "*.fastq.gz" | awk -F/ '{print $NF}' | awk -F'_' '{print $1}' | sort -u); do
                 if [[ ! $(ls -R "$SARA"/analysis/"$ID"/align 2>/dev/null | grep "$i"_"$TRIMMID"_"$MAPPINGID") ]]; then
-                    bowtie2 --threads "$THREADS" -x "$SARA"/analysis/"$ID"/index/"$REFERENCEID"_"$MAPPINGID"/"$REFERENCEID"_"$MAPPINGID" -1 "$SARA"/analysis/"$ID"/trimmed/"$i"_"$TRIMMID".R1.paired.fastq.gz -2 "$SARA"/analysis/"$ID"/trimmed/"$i"_"$TRIMMID".R2.paired.fastq.gz -S "$SARA"/analysis/"$ID"/align/"$i"."$TRIMMID"_"$MAPPINGID"_"$REFERENCEID".sam
-                    samtools view -bS "$SARA"/analysis/"$ID"/align/"$i"."$TRIMMID"_"$MAPPINGID"_"$REFERENCEID".sam > "$SARA"/analysis/"$ID"/align/"$i"."$TRIMMID"_"$MAPPINGID"_"$REFERENCEID".bam
+                    bowtie2 --threads "$THREADS" -x "$SARA"/analysis/"$ID"/index/"$REFERENCEID"_"$MAPPINGID"/"$REFERENCEID"_"$MAPPINGID" -1 "$SARA"/analysis/"$ID"/trimmed/"$i"_"$TRIMMID".R1.paired.fastq.gz -2 "$SARA"/analysis/"$ID"/trimmed/"$i"_"$TRIMMID".R2.paired.fastq.gz -S "$SARA"/analysis/"$ID"/align/"$i"_"$TRIMMID"_"$MAPPINGID"_"$REFERENCEID".sam
+                    samtools view -bS "$SARA"/analysis/"$ID"/align/"$i"_"$TRIMMID"_"$MAPPINGID"_"$REFERENCEID".sam > "$SARA"/analysis/"$ID"/align/"$i"_"$TRIMMID"_"$MAPPINGID"_"$REFERENCEID".bam
                     while ps -e | grep samtools; do
                     echo "converting SAM format to BAM format";
                     done
-                    rm -rf "$SARA"/analysis/"$ID"/align/"$i"."$TRIMMID"_"$MAPPINGID"_"$REFERENCEID".sam
+                    rm -rf "$SARA"/analysis/"$ID"/align/"$i"_"$TRIMMID"_"$MAPPINGID"_"$REFERENCEID".sam
                 else
                     echo "" && echo "ATTENTION ON MAPPING SETUP!!!"
                     echo "" && echo "Please check your CSV sheet."
@@ -197,11 +197,11 @@ bg() {
                 if [[ ! $(ls -R "$SARA"/analysis/"$ID"/align 2>/dev/null | grep "$i"_"$TRIMMID"_"$MAPPINGID") ]]; then
                     cd "$SARA"/analysis/"$ID"/align
                     hisat2 --threads "$THREADS" -x "$SARA"/analysis/"$ID"/index/"$REFERENCEID"_"$MAPPINGID"/"$REFERENCEID"_"$MAPPINGID" -1 "$SARA"/analysis/"$ID"/trimmed/"$i"_"$TRIMMID".R1.paired.fastq.gz -2 "$SARA"/analysis/"$ID"/trimmed/"$i"_"$TRIMMID".R2.paired.fastq.gz -S "$i"_"$TRIMMID"_"$MAPPINGID"_"$REFERENCEID".sam
-                    samtools view -bS "$SARA"/analysis/"$ID"/align/"$i"."$TRIMMID"_"$MAPPINGID"_"$REFERENCEID".sam > "$SARA"/analysis/"$ID"/align/"$i"."$TRIMMID"_"$MAPPINGID"_"$REFERENCEID".bam
+                    samtools view -bS "$SARA"/analysis/"$ID"/align/"$i"_"$TRIMMID"_"$MAPPINGID"_"$REFERENCEID".sam > "$SARA"/analysis/"$ID"/align/"$i"_"$TRIMMID"_"$MAPPINGID"_"$REFERENCEID".bam
                     while ps -e | grep samtools; do
                     echo "converting SAM format to BAM format";
                     done
-                    rm -rf "$SARA"/analysis/"$ID"/align/"$i"."$TRIMMID"_"$MAPPINGID"_"$REFERENCEID".sam
+                    rm -rf "$SARA"/analysis/"$ID"/align/"$i"_"$TRIMMID"_"$MAPPINGID"_"$REFERENCEID".sam
                 else
                     echo "" && echo "ATTENTION ON MAPPING SETUP!!!"
                     echo "" && echo "Please check your CSV sheet."
