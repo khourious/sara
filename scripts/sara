@@ -151,7 +151,7 @@ bg() {
         [[ ! -d "$SARA"/analysis/"$ID"/index ]] && mkdir "$SARA"/analysis/"$ID"/index
         if [[ "$MAPPING" == [Ss][Tt][Aa][Rr] ]]; then
             MAPPINGID=ST
-            if [[ ! -d "$SARA"/analysis/"$ID"/index/"$REFERENCEID"_"$MAPPINGID" 2>/dev/null && ! -e "$SARA"/analysis/"$ID"/index/"$REFERENCEID"_"$MAPPINGID"/chrName.txt 2>/dev/null && ! -e "$SARA"/analysis/"$ID"/index/"$REFERENCEID"_"$MAPPINGID"/chrNameLength.txt 2>/dev/null && ! -e "$SARA"/analysis/"$ID"/index/"$REFERENCEID"_"$MAPPINGID"/chrStart.txt 2>/dev/null && ! -e "$SARA"/analysis/"$ID"/index/"$REFERENCEID"_"$MAPPINGID"/Log.out 2>/dev/null ]]; then
+            if [[ ! -d "$SARA"/analysis/"$ID"/index/"$REFERENCEID"_"$MAPPINGID" && ! -e "$SARA"/analysis/"$ID"/index/"$REFERENCEID"_"$MAPPINGID"/chrName.txt && ! -e "$SARA"/analysis/"$ID"/index/"$REFERENCEID"_"$MAPPINGID"/chrNameLength.txt && ! -e "$SARA"/analysis/"$ID"/index/"$REFERENCEID"_"$MAPPINGID"/chrStart.txt && ! -e "$SARA"/analysis/"$ID"/index/"$REFERENCEID"_"$MAPPINGID"/Log.out ]]; then
                 STAR --runThreadN "$THREADS" --runMode genomeGenerate --genomeDir "$SARA"/analysis/"$ID"/index/"$REFERENCEID"_"$MAPPINGID" --genomeFastaFiles "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".fa
             fi
             for i in $(find "$SARA"/analysis/"$ID"/trimmed -type f -name "*.fastq.gz" | awk -F/ '{print $NF}' | awk -F_ '{print $1}' | sort -u); do
@@ -167,7 +167,7 @@ bg() {
         elif [[ "$MAPPING" == [Bb][Oo][Ww][Tt][Ii][Ee][2] ]]; then
             MAPPINGID=BT2
             [[ ! -d "$SARA"/analysis/"$ID"/index/"$REFERENCEID"_"$MAPPINGID" ]] && mkdir "$SARA"/analysis/"$ID"/index/"$REFERENCEID"_"$MAPPINGID"
-            if [[ ! -d "$SARA"/analysis/"$ID"/index/"$REFERENCEID"_"$MAPPINGID" 2>/dev/null && ! -e "$SARA"/analysis/"$ID"/index/"$REFERENCEID"_"$MAPPINGID"/"$REFERENCEID"_"$MAPPINGID".[1-4].bt2 2>/dev/null && ! -e "$SARA"/analysis/"$ID"/index/"$REFERENCEID"_"$MAPPINGID"/"$REFERENCEID"_"$MAPPINGID".rev.[1-2].bt2 2>/dev/null ]]; then
+            if [[ ! -d "$SARA"/analysis/"$ID"/index/"$REFERENCEID"_"$MAPPINGID" && ! -e "$SARA"/analysis/"$ID"/index/"$REFERENCEID"_"$MAPPINGID"/"$REFERENCEID"_"$MAPPINGID".[1-4].bt2 && ! -e "$SARA"/analysis/"$ID"/index/"$REFERENCEID"_"$MAPPINGID"/"$REFERENCEID"_"$MAPPINGID".rev.[1-2].bt2 ]]; then
                 cd "$SARA"/analysis/"$ID"/index/"$REFERENCEID"_"$MAPPINGID"
                 bowtie2-build --threads "$THREADS" -f ../../reference/"$REFERENCEID".fa "$REFERENCE"_"$MAPPINGID"
             fi
@@ -178,7 +178,7 @@ bg() {
                     while ps -e | grep samtools; do
                     echo "converting SAM format to BAM format";
                     done
-                    rm -rf "$SARA"/analysis/"$ID"/align/"$i"."$TRIMMID"_BT2_"$REFERENCEID".sam
+                    rm -rf "$SARA"/analysis/"$ID"/align/"$i"."$TRIMMID"_"$MAPPINGID"_"$REFERENCEID".sam
                 else
                     echo "" && echo "ATTENTION ON MAPPING SETUP!!!"
                     echo "" && echo "Please check your CSV sheet."
@@ -189,7 +189,7 @@ bg() {
         elif [[ "$MAPPING" == [Hh][Ii][Ss][Aa][Tt][2] ]]; then
             MAPPINGID=HT2
             [[ ! -d "$SARA"/analysis/"$ID"/index/"$REFERENCEID"_"$MAPPINGID" ]] && mkdir "$SARA"/analysis/"$ID"/index/"$REFERENCEID"_"$MAPPINGID"
-            if [[ ! -d "$SARA"/analysis/"$ID"/index/"$REFERENCEID"_"$MAPPINGID" 2>/dev/null && ! -e "$SARA"/analysis/"$ID"/index/"$REFERENCEID"_"$MAPPINGID"/"$REFERENCE"_"$MAPPINGID".[1-8].ht2 2>/dev/null ]]; then
+            if [[ ! -d "$SARA"/analysis/"$ID"/index/"$REFERENCEID"_"$MAPPINGID" && ! -e "$SARA"/analysis/"$ID"/index/"$REFERENCEID"_"$MAPPINGID"/"$REFERENCE"_"$MAPPINGID".[1-8].ht2 ]]; then
                 cd "$SARA"/analysis/"$ID"/index/"$REFERENCEID"_"$MAPPINGID"
                 hisat2-build --threads "$THREADS" -f ../../reference/"$REFERENCE".fa "$REFERENCEID"_"$MAPPINGID"
             fi
@@ -201,7 +201,7 @@ bg() {
                     while ps -e | grep samtools; do
                     echo "converting SAM format to BAM format";
                     done
-                    rm -rf "$SARA"/analysis/"$ID"/align/"$i"."$TRIMMID"_HT2_"$REFERENCEID".sam
+                    rm -rf "$SARA"/analysis/"$ID"/align/"$i"."$TRIMMID"_"$MAPPINGID"_"$REFERENCEID".sam
                 else
                     echo "" && echo "ATTENTION ON MAPPING SETUP!!!"
                     echo "" && echo "Please check your CSV sheet."
