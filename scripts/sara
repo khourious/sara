@@ -139,7 +139,7 @@ bg() {
                 wget https://s3-us-west-2.amazonaws.com/human-pangenomics/T2T/CHM13/assemblies/annotation/chm13.draft_v1.1.gene_annotation.v4.gff3.gz -q -O "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".gff3.gz
                 echo "... done."
                 gunzip "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".fa.gz
-                gunzip "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".gtf3.gz
+                gunzip "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".gff3.gz
             fi
         else
             echo "" && echo "ATTENTION ON REFERENCE SETUP!!!"
