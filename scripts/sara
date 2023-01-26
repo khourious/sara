@@ -151,11 +151,12 @@ bg() {
         [[ ! -d "$SARA"/analysis/"$ID"/index ]] && mkdir "$SARA"/analysis/"$ID"/index
         if [[ "$MAPPING" == [Ss][Tt][Aa][Rr] ]]; then
             MAPPINGID=ST
-            if [[-d "$SARA"/analysis/"$ID"/index/"$REFERENCEID"_"$MAPPINGID" && -e"$SARA"/analysis/"$ID"/index/"$REFERENCEID"_"$MAPPINGID"/chrName.txt && -e "$SARA"/analysis/"$ID"/index/"$REFERENCEID"_"$MAPPINGID"/chrNameLength.txt && -e "$SARA"/analysis/"$ID"/index/"$REFERENCEID"_"$MAPPINGID"/chrStart.txt && -e "$SARA"/analysis/"$ID"/index/"$REFERENCEID"_"$MAPPINGID"/Log.out ]]; then
-                echo "index file exists"
-            else
+            if [[ $(ls -R "$SARA"/analysis/"$ID"/index/"$REFERENCEID"_"$MAPPINGID" 2>/dev/null | wc -l) -lt 10 ]]; then
                 STAR --runThreadN "$THREADS" --runMode genomeGenerate --genomeDir "$SARA"/analysis/"$ID"/index/"$REFERENCEID"_"$MAPPINGID" --genomeFastaFiles "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".fa
             fi
+        fi
+        if [[ "$MAPPING" == [Ss][Tt][Aa][Rr] ]]; then
+            MAPPINGID=ST
             for i in $(find "$SARA"/analysis/"$ID"/trimmed -type f -name "*.fastq.gz" | awk -F/ '{print $NF}' | awk -F_ '{print $1}' | sort -u); do
                 if [[ ! $(ls -R "$SARA"/analysis/"$ID"/align 2>/dev/null | grep "$i"_"$TRIMMID"_"$MAPPINGID") ]]; then
                     STAR --runThreadN "$THREADS" --runMode alignReads --genomeDir "$SARA"/analysis/"$ID"/index/"$REFERENCEID"_"$MAPPINGID" --sjdbGTFfile "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".gff3 --sjdbGTFtagExonParentTranscript Parent --readFilesIn "$SARA"/analysis/"$ID"/trimmed/"$i"_"$TRIMMID".R1.paired.fastq.gz "$SARA"/analysis/"$ID"/trimmed/"$i"_"$TRIMMID".R2.paired.fastq.gz --readFilesCommand zcat --outFileNamePrefix "$SARA"/analysis/"$ID"/align/"$i"_"$TRIMMID"_"$MAPPINGID"_"$REFERENCEID". --outSAMtype BAM Unsorted --outReadsUnmapped Fastx
@@ -169,20 +170,18 @@ bg() {
         elif [[ "$MAPPING" == [Bb][Oo][Ww][Tt][Ii][Ee][2] ]]; then
             MAPPINGID=BT2
             [[ ! -d "$SARA"/analysis/"$ID"/index/"$REFERENCEID"_"$MAPPINGID" ]] && mkdir "$SARA"/analysis/"$ID"/index/"$REFERENCEID"_"$MAPPINGID"
-            if [[ -d "$SARA"/analysis/"$ID"/index/"$REFERENCEID"_"$MAPPINGID" && -e "$SARA"/analysis/"$ID"/index/"$REFERENCEID"_"$MAPPINGID"/"$REFERENCEID"_"$MAPPINGID".[1-4].bt2 && -e "$SARA"/analysis/"$ID"/index/"$REFERENCEID"_"$MAPPINGID"/"$REFERENCEID"_"$MAPPINGID".rev.[1-2].bt2 | grep "$REFERENCEID"_"$MAPPINGID" ]]; then
-                echo "index files exists"
-            else    
+            if [[ ! $(ls -R "$SARA"/analysis/"$ID"/index/"$REFERENCEID"_"$MAPPINGID" 2>/dev/null | grep "$REFERENCEID"_"$MAPPINGID") ]]; then
                 cd "$SARA"/analysis/"$ID"/index/"$REFERENCEID"_"$MAPPINGID"
-                bowtie2-build --threads "$THREADS" -f ../../reference/"$REFERENCEID".fa "$REFERENCE"_"$MAPPINGID"
+                bowtie2-build --threads "$THREADS" -f ../../reference/"$REFERENCEID".fa "$REFERENCEID"_"$MAPPINGID"
+            else
+                if [[ $(ls -R "$SARA"/analysis/"$ID"/index/"$REFERENCEID"_"$MAPPINGID" 2>/dev/null | wc -l) -lt 7 ]]; then
+                    cd "$SARA"/analysis/"$ID"/index/"$REFERENCEID"_"$MAPPINGID"
+                    bowtie2-build --threads "$THREADS" -f ../../reference/"$REFERENCEID".fa "$REFERENCEID"_"$MAPPINGID"
+                fi
             fi
-            for i in $(find "$SARA"/analysis/"$ID"/trimmed -type f -name "*.fastq.gz" | awk -F/ '{print $NF}' | awk -F'_' '{print $1}' | sort -u); do
+            for i in $(find "$SARA"/analysis/"$ID"/trimmed -type f -name "*.fastq.gz" | awk -F/ '{print $NF}' | awk -F_ '{print $1}' | sort -u); do
                 if [[ ! $(ls -R "$SARA"/analysis/"$ID"/align 2>/dev/null | grep "$i"_"$TRIMMID"_"$MAPPINGID") ]]; then
-                    bowtie2 --threads "$THREADS" -x "$SARA"/analysis/"$ID"/index/"$REFERENCEID"_"$MAPPINGID"/"$REFERENCEID"_"$MAPPINGID" -1 "$SARA"/analysis/"$ID"/trimmed/"$i"_"$TRIMMID".R1.paired.fastq.gz -2 "$SARA"/analysis/"$ID"/trimmed/"$i"_"$TRIMMID".R2.paired.fastq.gz -S "$SARA"/analysis/"$ID"/align/"$i"_"$TRIMMID"_"$MAPPINGID"_"$REFERENCEID".sam
-                    samtools view -bS "$SARA"/analysis/"$ID"/align/"$i"_"$TRIMMID"_"$MAPPINGID"_"$REFERENCEID".sam > "$SARA"/analysis/"$ID"/align/"$i"_"$TRIMMID"_"$MAPPINGID"_"$REFERENCEID".bam
-                    while ps -e | grep samtools; do
-                    echo "converting SAM format to BAM format";
-                    done
-                    rm -rf "$SARA"/analysis/"$ID"/align/"$i"_"$TRIMMID"_"$MAPPINGID"_"$REFERENCEID".sam
+                    bowtie2 --threads "$THREADS" -x "$SARA"/analysis/"$ID"/index/"$REFERENCEID"_"$MAPPINGID"/"$REFERENCEID"_"$MAPPINGID" -1 "$SARA"/analysis/"$ID"/trimmed/"$i"_"$TRIMMID".R1.paired.fastq.gz -2 "$SARA"/analysis/"$ID"/trimmed/"$i"_"$TRIMMID".R2.paired.fastq.gz -S "$SARA"/analysis/"$ID"/align/"$i"."$TRIMMID"_"$MAPPINGID"_"$REFERENCEID".sam
                 else
                     echo "" && echo "ATTENTION ON MAPPING SETUP!!!"
                     echo "" && echo "Please check your CSV sheet."
@@ -193,21 +192,19 @@ bg() {
         elif [[ "$MAPPING" == [Hh][Ii][Ss][Aa][Tt][2] ]]; then
             MAPPINGID=HT2
             [[ ! -d "$SARA"/analysis/"$ID"/index/"$REFERENCEID"_"$MAPPINGID" ]] && mkdir "$SARA"/analysis/"$ID"/index/"$REFERENCEID"_"$MAPPINGID"
-            if [[ -d "$SARA"/analysis/"$ID"/index/"$REFERENCEID"_"$MAPPINGID" && -e "$SARA"/analysis/"$ID"/index/"$REFERENCEID"_"$MAPPINGID"/"$REFERENCE"_"$MAPPINGID".[1-8].ht2 | grep "$REFERENCE"_"$MAPPINGID" ]]; then
-                echo "index files exists"
-            else
+            if [[ ! $(ls -R "$SARA"/analysis/"$ID"/index/"$REFERENCEID"_"$MAPPINGID" 2>/dev/null | grep "$REFERENCEID"_"$MAPPINGID") ]]; then
                 cd "$SARA"/analysis/"$ID"/index/"$REFERENCEID"_"$MAPPINGID"
-                hisat2-build --threads "$THREADS" -f ../../reference/"$REFERENCE".fa "$REFERENCEID"_"$MAPPINGID"
+                hisat2-build --threads "$THREADS" -f ../../reference/"$REFERENCEID".fa "$REFERENCEID"_"$MAPPINGID"
+            else
+                if [[ $(ls -R "$SARA"/analysis/"$ID"/index/"$REFERENCEID"_"$MAPPINGID" 2>/dev/null | wc -l) -lt 9 ]]; then
+                    cd "$SARA"/analysis/"$ID"/index/"$REFERENCEID"_"$MAPPINGID"
+                    hisat2-build --threads "$THREADS" -f ../../reference/"$REFERENCEID".fa "$REFERENCEID"_"$MAPPINGID"
+                fi
             fi
-            for i in $(find "$SARA"/analysis/"$ID"/trimmed -type f -name "*.fastq.gz" | awk -F/ '{print $NF}' | awk -F'_' '{print $1}' | sort -u); do
+            for i in $(find "$SARA"/analysis/"$ID"/trimmed -type f -name "*.fastq.gz" | awk -F/ '{print $NF}' | awk -F_ '{print $1}' | sort -u); do
                 if [[ ! $(ls -R "$SARA"/analysis/"$ID"/align 2>/dev/null | grep "$i"_"$TRIMMID"_"$MAPPINGID") ]]; then
                     cd "$SARA"/analysis/"$ID"/align
                     hisat2 --threads "$THREADS" -x "$SARA"/analysis/"$ID"/index/"$REFERENCEID"_"$MAPPINGID"/"$REFERENCEID"_"$MAPPINGID" -1 "$SARA"/analysis/"$ID"/trimmed/"$i"_"$TRIMMID".R1.paired.fastq.gz -2 "$SARA"/analysis/"$ID"/trimmed/"$i"_"$TRIMMID".R2.paired.fastq.gz -S "$i"_"$TRIMMID"_"$MAPPINGID"_"$REFERENCEID".sam
-                    samtools view -bS "$SARA"/analysis/"$ID"/align/"$i"_"$TRIMMID"_"$MAPPINGID"_"$REFERENCEID".sam > "$SARA"/analysis/"$ID"/align/"$i"_"$TRIMMID"_"$MAPPINGID"_"$REFERENCEID".bam
-                    while ps -e | grep samtools; do
-                    echo "converting SAM format to BAM format";
-                    done
-                    rm -rf "$SARA"/analysis/"$ID"/align/"$i"_"$TRIMMID"_"$MAPPINGID"_"$REFERENCEID".sam
                 else
                     echo "" && echo "ATTENTION ON MAPPING SETUP!!!"
                     echo "" && echo "Please check your CSV sheet."
