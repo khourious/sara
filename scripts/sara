@@ -95,11 +95,11 @@ bg() {
             else
                 echo "" && echo "ATTENTION ON TRIMMING SETUP!!!"
                 echo "" && echo "Please check your CSV sheet."
-                echo "" && echo "The name of the CSV file must corresponds the name of the library and contains comma-separated programs on the first line (i.e. 'trimm,mapping,count,deg)."
+                echo "" && echo "The name of the CSV file must corresponds the name of the library and contains comma-separated programs on the first line (i.e. 'trimm,reference,mapping,count,deg)."
                 echo "" && echo "From the second line on, it must contain the list of samples and the condition, also separated by a comma [CTRL are controls; EXP are experimentals]." && echo ""
             fi
         done
-         REFERENCE=$(cat "$SARA"/sheets/"$ID".csv | sed -n 1p | awk -F, '{print $2}')
+        REFERENCE=$(cat "$SARA"/sheets/"$ID".csv | sed -n 1p | awk -F, '{print $2}')
         [[ ! -d "$SARA"/analysis/"$ID"/reference ]] && mkdir "$SARA"/analysis/"$ID"/reference
         if [[ "$REFERENCE" == [Gg][Rr][Cc][Hh][3][7] ]]; then # https://www.gencodegenes.org/human/
             REFERENCEID=GRCh37
@@ -116,7 +116,7 @@ bg() {
             if [[ ! $(ls -R "$SARA"/analysis/"$ID"/reference 2>/dev/null | egrep "[Gg][Rr][Cc][Hh][3][8].f|[Gg][Rr][Cc][Hh][3][8].g") ]]; then
                 echo "Downloading "$REFERENCEID" reference genome..."
                 wget http://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/latest_release/GRCh38.p13.genome.fa.gz -q -O "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".fa.gz
-                wget http://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/latest_release/gencode.v42.annotation.gff3.gz -q -O "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".gff3.gz
+                wget http://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/latest_release/gencode.v39.annotation.gtf.gz -q -O "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".gff3.gz
                 echo "... done."
                 gunzip "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".fa.gz
                 gunzip "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".gff3.gz
@@ -144,83 +144,73 @@ bg() {
         else
             echo "" && echo "ATTENTION ON REFERENCE SETUP!!!"
             echo "" && echo "Please check your CSV sheet."
-            echo "" && echo "The name of the CSV file must corresponds the name of the library and contains comma-separated programs on the first line (i.e. 'trimm,mapping,count,deg)."
+            echo "" && echo "The name of the CSV file must corresponds the name of the library and contains comma-separated programs on the first line (i.e. 'trimm,reference,mapping,count,deg)."
             echo "" && echo "From the second line on, it must contain the list of samples and the condition, also separated by a comma [CTRL are controls; EXP are experimentals]." && echo ""
         fi
         MAPPING=$(cat "$SARA"/sheets/"$ID".csv | sed -n 1p | awk -F, '{print $3}')
         [[ ! -d "$SARA"/analysis/"$ID"/index ]] && mkdir "$SARA"/analysis/"$ID"/index
         if [[ "$MAPPING" == [Ss][Tt][Aa][Rr] ]]; then
             MAPPINGID=ST
-            if [[ $(ls -R "$SARA"/analysis/"$ID"/index/"$REFERENCEID"_"$MAPPINGID" 2>/dev/null | wc -l) -lt 10 ]]; then
+            if [[ $(ls -R "$SARA"/analysis/"$ID"/index/"$REFERENCE"_"$MAPPINGID" 2>/dev/null | wc -l) -lt 10 ]]; then
                 STAR --runThreadN "$THREADS" --runMode genomeGenerate --genomeDir "$SARA"/analysis/"$ID"/index/"$REFERENCEID"_"$MAPPINGID" --genomeFastaFiles "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".fa
             fi
-        fi
-        if [[ "$MAPPING" == [Ss][Tt][Aa][Rr] ]]; then
-            MAPPINGID=ST
             for i in $(find "$SARA"/analysis/"$ID"/trimmed -type f -name "*.fastq.gz" | awk -F/ '{print $NF}' | awk -F_ '{print $1}' | sort -u); do
                 if [[ ! $(ls -R "$SARA"/analysis/"$ID"/align 2>/dev/null | grep "$i"_"$TRIMMID"_"$MAPPINGID") ]]; then
                     STAR --runThreadN "$THREADS" --runMode alignReads --genomeDir "$SARA"/analysis/"$ID"/index/"$REFERENCEID"_"$MAPPINGID" --sjdbGTFfile "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".gff3 --sjdbGTFtagExonParentTranscript Parent --readFilesIn "$SARA"/analysis/"$ID"/trimmed/"$i"_"$TRIMMID".R1.paired.fastq.gz "$SARA"/analysis/"$ID"/trimmed/"$i"_"$TRIMMID".R2.paired.fastq.gz --readFilesCommand zcat --outFileNamePrefix "$SARA"/analysis/"$ID"/align/"$i"_"$TRIMMID"_"$MAPPINGID"_"$REFERENCEID". --outSAMtype BAM Unsorted --outReadsUnmapped Fastx
                 else
                     echo "" && echo "ATTENTION ON MAPPING SETUP!!!"
                     echo "" && echo "Please check your CSV sheet."
-                    echo "" && echo "The name of the CSV file must corresponds the name of the library and contains comma-separated programs on the first line (i.e. 'trimm,mapping,count,deg)."
+                    echo "" && echo "The name of the CSV file must corresponds the name of the library and contains comma-separated programs on the first line (i.e. 'trimm,reference,mapping,count,deg)."
                     echo "" && echo "From the second line on, it must contain the list of samples and the condition, also separated by a comma [CTRL are controls; EXP are experimentals]." && echo ""
+                    fi
                 fi
             done
         elif [[ "$MAPPING" == [Bb][Oo][Ww][Tt][Ii][Ee][2] ]]; then
             MAPPINGID=BT2
             [[ ! -d "$SARA"/analysis/"$ID"/index/"$REFERENCEID"_"$MAPPINGID" ]] && mkdir "$SARA"/analysis/"$ID"/index/"$REFERENCEID"_"$MAPPINGID"
-            if [[ ! $(ls -R "$SARA"/analysis/"$ID"/index/"$REFERENCEID"_"$MAPPINGID" 2>/dev/null | grep "$REFERENCEID"_"$MAPPINGID") ]]; then
+            if [[ $(ls -R "$SARA"/analysis/"$ID"/index/"$REFERENCE"_"$MAPPINGID" 2>/dev/null | wc -l) -lt 7 ]]; then    
                 cd "$SARA"/analysis/"$ID"/index/"$REFERENCEID"_"$MAPPINGID"
-                bowtie2-build --threads "$THREADS" -f ../../reference/"$REFERENCEID".fa "$REFERENCEID"_"$MAPPINGID"
-            else
-                if [[ $(ls -R "$SARA"/analysis/"$ID"/index/"$REFERENCEID"_"$MAPPINGID" 2>/dev/null | wc -l) -lt 7 ]]; then
-                    cd "$SARA"/analysis/"$ID"/index/"$REFERENCEID"_"$MAPPINGID"
-                    bowtie2-build --threads "$THREADS" -f ../../reference/"$REFERENCEID".fa "$REFERENCEID"_"$MAPPINGID"
-                fi
+                bowtie2-build --threads "$THREADS" -f ../../reference/"$REFERENCEID".fa "$REFERENCE"_"$MAPPINGID"
             fi
-            for i in $(find "$SARA"/analysis/"$ID"/trimmed -type f -name "*.fastq.gz" | awk -F/ '{print $NF}' | awk -F_ '{print $1}' | sort -u); do
+            for i in $(find "$SARA"/analysis/"$ID"/trimmed -type f -name "*.fastq.gz" | awk -F/ '{print $NF}' | awk -F'_' '{print $1}' | sort -u); do
                 if [[ ! $(ls -R "$SARA"/analysis/"$ID"/align 2>/dev/null | grep "$i"_"$TRIMMID"_"$MAPPINGID") ]]; then
                     bowtie2 --threads "$THREADS" -x "$SARA"/analysis/"$ID"/index/"$REFERENCEID"_"$MAPPINGID"/"$REFERENCEID"_"$MAPPINGID" -1 "$SARA"/analysis/"$ID"/trimmed/"$i"_"$TRIMMID".R1.paired.fastq.gz -2 "$SARA"/analysis/"$ID"/trimmed/"$i"_"$TRIMMID".R2.paired.fastq.gz -S "$SARA"/analysis/"$ID"/align/"$i"."$TRIMMID"_"$MAPPINGID"_"$REFERENCEID".sam
-                    samtools view -bS "$SARA"/analysis/"$ID"/align/"$i"_"$TRIMMID"_"$MAPPINGID"_"$REFERENCEID".sam > "$SARA"/analysis/"$ID"/align/"$i"_"$TRIMMID"_"$MAPPINGID"_"$REFERENCEID".bam
+                    samtools view -bS "$SARA"/analysis/"$ID"/align/"$i"."$TRIMMID"_"$MAPPINGID"_"$REFERENCEID".sam > "$SARA"/analysis/"$ID"/align/"$i"."$TRIMMID"_"$MAPPINGID"_"$REFERENCEID".bam
                     while ps -e | grep samtools; do
-                        echo "converting SAM format to BAM format";
+                    echo "converting SAM format to BAM format";
                     done
-                    rm -rf "$SARA"/analysis/"$ID"/align/"$i"_"$TRIMMID"_"$MAPPINGID"_"$REFERENCEID".sam
+                    rm -rf "$SARA"/analysis/"$ID"/align/"$i"."$TRIMMID"_BT2_"$REFERENCEID".sam
                 else
                     echo "" && echo "ATTENTION ON MAPPING SETUP!!!"
                     echo "" && echo "Please check your CSV sheet."
-                    echo "" && echo "The name of the CSV file must corresponds the name of the library and contains comma-separated programs on the first line (i.e. 'trimm,mapping,count,deg)."
+                    echo "" && echo "The name of the CSV file must corresponds the name of the library and contains comma-separated programs on the first line (i.e. 'trimm,reference,mapping,count,deg)."
                     echo "" && echo "From the second line on, it must contain the list of samples and the condition, also separated by a comma [CTRL are controls; EXP are experimentals]." && echo ""
                 fi
             done
         elif [[ "$MAPPING" == [Hh][Ii][Ss][Aa][Tt][2] ]]; then
             MAPPINGID=HT2
             [[ ! -d "$SARA"/analysis/"$ID"/index/"$REFERENCEID"_"$MAPPINGID" ]] && mkdir "$SARA"/analysis/"$ID"/index/"$REFERENCEID"_"$MAPPINGID"
-            if [[ ! $(ls -R "$SARA"/analysis/"$ID"/index/"$REFERENCEID"_"$MAPPINGID" 2>/dev/null | grep "$REFERENCEID"_"$MAPPINGID") ]]; then
+            if [[ $(ls -R "$SARA"/analysis/"$ID"/index/"$REFERENCE"_"$MAPPINGID" 2>/dev/null | wc -l) -lt 9 ]]; then
                 cd "$SARA"/analysis/"$ID"/index/"$REFERENCEID"_"$MAPPINGID"
-                hisat2-build --threads "$THREADS" -f ../../reference/"$REFERENCEID".fa "$REFERENCEID"_"$MAPPINGID"
-            else
-                if [[ $(ls -R "$SARA"/analysis/"$ID"/index/"$REFERENCEID"_"$MAPPINGID" 2>/dev/null | wc -l) -lt 9 ]]; then
-                    cd "$SARA"/analysis/"$ID"/index/"$REFERENCEID"_"$MAPPINGID"
-                    hisat2-build --threads "$THREADS" -f ../../reference/"$REFERENCEID".fa "$REFERENCEID"_"$MAPPINGID"
-                fi
+                hisat2-build --threads "$THREADS" -f ../../reference/"$REFERENCE".fa "$REFERENCEID"_"$MAPPINGID"
             fi
-            for i in $(find "$SARA"/analysis/"$ID"/trimmed -type f -name "*.fastq.gz" | awk -F/ '{print $NF}' | awk -F_ '{print $1}' | sort -u); do
+            for i in $(find "$SARA"/analysis/"$ID"/trimmed -type f -name "*.fastq.gz" | awk -F/ '{print $NF}' | awk -F'_' '{print $1}' | sort -u); do
                 if [[ ! $(ls -R "$SARA"/analysis/"$ID"/align 2>/dev/null | grep "$i"_"$TRIMMID"_"$MAPPINGID") ]]; then
                     cd "$SARA"/analysis/"$ID"/align
                     hisat2 --threads "$THREADS" -x "$SARA"/analysis/"$ID"/index/"$REFERENCEID"_"$MAPPINGID"/"$REFERENCEID"_"$MAPPINGID" -1 "$SARA"/analysis/"$ID"/trimmed/"$i"_"$TRIMMID".R1.paired.fastq.gz -2 "$SARA"/analysis/"$ID"/trimmed/"$i"_"$TRIMMID".R2.paired.fastq.gz -S "$i"_"$TRIMMID"_"$MAPPINGID"_"$REFERENCEID".sam
-                    samtools view -bS "$SARA"/analysis/"$ID"/align/"$i"_"$TRIMMID"_"$MAPPINGID"_"$REFERENCEID".sam > "$SARA"/analysis/"$ID"/align/"$i"_"$TRIMMID"_"$MAPPINGID"_"$REFERENCEID".bam
+                    samtools view -bS "$SARA"/analysis/"$ID"/align/"$i"."$TRIMMID"_"$MAPPINGID"_"$REFERENCEID".sam > "$SARA"/analysis/"$ID"/align/"$i"."$TRIMMID"_"$MAPPINGID"_"$REFERENCEID".bam
                     while ps -e | grep samtools; do
-                        echo "converting SAM format to BAM format";
+                    echo "converting SAM format to BAM format";
                     done
-                    rm -rf "$SARA"/analysis/"$ID"/align/"$i"_"$TRIMMID"_"$MAPPINGID"_"$REFERENCEID".sam
+                    rm -rf "$SARA"/analysis/"$ID"/align/"$i"."$TRIMMID"_HT2_"$REFERENCEID".sam
                 else
                     echo "" && echo "ATTENTION ON MAPPING SETUP!!!"
                     echo "" && echo "Please check your CSV sheet."
-                    echo "" && echo "The name of the CSV file must corresponds the name of the library and contains comma-separated programs on the first line (i.e. 'trimm,mapping,count,deg)."
+                    echo "" && echo "The name of the CSV file must corresponds the name of the library and contains comma-separated programs on the first line (i.e. 'trimm,reference,mapping,count,deg)."
                     echo "" && echo "From the second line on, it must contain the list of samples and the condition, also separated by a comma [CTRL are controls; EXP are experimentals]." && echo ""
                 fi
+            done
+        fi           fi
             done
         fi
         COUNT=$(cat "$SARA"/sheets/"$ID".csv | sed -n 1p | awk -F, '{print $4}')
@@ -229,57 +219,57 @@ bg() {
         if [[ ! $(ls -R "$SARA"/analysis/"$ID"/counts 2>/dev/null | grep ""$TRIMMID"_"$MAPPINGID"_"$COUNTID".counts") ]]; then
             if [[ "$COUNT" == [Ff][Ee][Aa][Tt][Uu][Rr][Ee][Cc][Oo][Uu][Nn][Tt][Ss] ]]; then
                 if [[ "$TRIMM" == [Ff][Aa][Ss][Tt][Pp] ]] && [[ "$MAPPING" == [Ss][Tt][Aa][Rr] ]] && [[ "$REFERENCE" == [Gg][Rr][Cc][Hh][3][7] ]]; then
-                    featureCounts -a "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".gff3 -o "$SARA"/analysis/"$ID"/counts/"$ID"_"$TRIMMID"_"$MAPPINGID"_"$COUNTID".counts.txt -s 2 -G "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".fa -p --countReadPairs -C -T "$THREADS" $(cat "$SARA"/sheets/"$ID".csv | sed '1d' | awk -F, -v ALIGN_PATH="$SARA"/analysis/"$ID"/align/ '{print ALIGN_PATH $1"_FP_ST_GRCh37.Aligned.out.bam"}' | xargs)
+                    featureCounts -a "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".gtf -o "$SARA"/analysis/"$ID"/counts/"$ID"_"$TRIMMID"_"$MAPPINGID"_"$COUNTID".counts.txt -s 2 -G "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".fa -p --countReadPairs -C -T "$THREADS" $(cat "$SARA"/sheets/"$ID".csv | sed '1d' | awk -F, -v ALIGN_PATH="$SARA"/analysis/"$ID"/align/ '{print ALIGN_PATH $1"_FP_ST_GRCh37.Aligned.out.bam"}' | xargs)
                 elif [[ "$TRIMM" == [Ff][Aa][Ss][Tt][Pp] ]] && [[ "$MAPPING" == [Ss][Tt][Aa][Rr] ]] && [[ "$REFERENCE" == [Gg][Rr][Cc][Hh][3][8] ]]; then
-                    featureCounts -a "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".gff3 -o "$SARA"/analysis/"$ID"/counts/"$ID"_"$TRIMMID"_"$MAPPINGID"_"$COUNTID".counts.txt -s 2 -G "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".fa -p --countReadPairs -C -T "$THREADS" $(cat "$SARA"/sheets/"$ID".csv | sed '1d' | awk -F, -v ALIGN_PATH="$SARA"/analysis/"$ID"/align/ '{print ALIGN_PATH $1"_FP_ST_GRCh38.Aligned.out.bam"}' | xargs)
+                    featureCounts -a "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".gtf -o "$SARA"/analysis/"$ID"/counts/"$ID"_"$TRIMMID"_"$MAPPINGID"_"$COUNTID".counts.txt -s 2 -G "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".fa -p --countReadPairs -C -T "$THREADS" $(cat "$SARA"/sheets/"$ID".csv | sed '1d' | awk -F, -v ALIGN_PATH="$SARA"/analysis/"$ID"/align/ '{print ALIGN_PATH $1"_FP_ST_GRCh38.Aligned.out.bam"}' | xargs)
                 elif [[ "$TRIMM" == [Ff][Aa][Ss][Tt][Pp] ]] && [[ "$MAPPING" == [Ss][Tt][Aa][Rr] ]] && [[ "$REFERENCE" == [Gg][Rr][Cc][Mm][3][9] ]]; then
-                    featureCounts -a "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".gff3 -o "$SARA"/analysis/"$ID"/counts/"$ID"_"$TRIMMID"_"$MAPPINGID"_"$COUNTID".counts.txt -s 2 -G "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".fa -p --countReadPairs -C -T "$THREADS" $(cat "$SARA"/sheets/"$ID".csv | sed '1d' | awk -F, -v ALIGN_PATH="$SARA"/analysis/"$ID"/align/ '{print ALIGN_PATH $1"_FP_ST_GRCm39.Aligned.out.bam"}' | xargs)
+                    featureCounts -a "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".gtf -o "$SARA"/analysis/"$ID"/counts/"$ID"_"$TRIMMID"_"$MAPPINGID"_"$COUNTID".counts.txt -s 2 -G "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".fa -p --countReadPairs -C -T "$THREADS" $(cat "$SARA"/sheets/"$ID".csv | sed '1d' | awk -F, -v ALIGN_PATH="$SARA"/analysis/"$ID"/align/ '{print ALIGN_PATH $1"_FP_ST_GRCm39.Aligned.out.bam"}' | xargs)
                 elif [[ "$TRIMM" == [Ff][Aa][Ss][Tt][Pp] ]] && [[ "$MAPPING" == [Ss][Tt][Aa][Rr] ]] && [[ "$REFERENCE" == [Cc][Hh][Mm][1][3] ]]; then
                     featureCounts -a "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".gff3 -o "$SARA"/analysis/"$ID"/counts/"$ID"_"$TRIMMID"_"$MAPPINGID"_"$COUNTID".counts.txt -s 2 -G "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".fa -p --countReadPairs -C -T "$THREADS" $(cat "$SARA"/sheets/"$ID".csv | sed '1d' | awk -F, -v ALIGN_PATH="$SARA"/analysis/"$ID"/align/ '{print ALIGN_PATH $1"_FP_ST_CHM13.Aligned.out.bam"}' | xargs)
                 elif [[ "$TRIMM" == [Ff][Aa][Ss][Tt][Pp] ]] && [[ "$MAPPING" == [Bb][Oo][Ww][Tt][Ii][Ee][2] ]] && [[ "$REFERENCE" == [Gg][Rr][Cc][Hh][3][7] ]]; then
-                    featureCounts -a "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".gff3 -o "$SARA"/analysis/"$ID"/counts/"$ID"_"$TRIMMID"_"$MAPPINGID"_"$COUNTID".counts.txt -s 2 -G "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".fa -p --countReadPairs -C -T "$THREADS" $(cat "$SARA"/sheets/"$ID".csv | sed '1d' | awk -F, -v ALIGN_PATH="$SARA"/analysis/"$ID"/align/ '{print ALIGN_PATH $1"_FP_BT2_GRCh37.bam"}' | xargs)
+                    featureCounts -a "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".gtf -o "$SARA"/analysis/"$ID"/counts/"$ID"_"$TRIMMID"_"$MAPPINGID"_"$COUNTID".counts.txt -s 2 -G "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".fa -p --countReadPairs -C -T "$THREADS" $(cat "$SARA"/sheets/"$ID".csv | sed '1d' | awk -F, -v ALIGN_PATH="$SARA"/analysis/"$ID"/align/ '{print ALIGN_PATH $1"_FP_BT2_GRCh37.sam"}' | xargs)
                 elif [[ "$TRIMM" == [Ff][Aa][Ss][Tt][Pp] ]] && [[ "$MAPPING" == [Bb][Oo][Ww][Tt][Ii][Ee][2] ]] && [[ "$REFERENCE" == [Gg][Rr][Cc][Hh][3][8] ]]; then
-                    featureCounts -a "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".gff3 -o "$SARA"/analysis/"$ID"/counts/"$ID"_"$TRIMMID"_"$MAPPINGID"_"$COUNTID".counts.txt -s 2 -G "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".fa -p --countReadPairs -C -T "$THREADS" $(cat "$SARA"/sheets/"$ID".csv | sed '1d' | awk -F, -v ALIGN_PATH="$SARA"/analysis/"$ID"/align/ '{print ALIGN_PATH $1"_FP_BT2_GRCh38.bam"}' | xargs)
+                    featureCounts -a "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".gtf -o "$SARA"/analysis/"$ID"/counts/"$ID"_"$TRIMMID"_"$MAPPINGID"_"$COUNTID".counts.txt -s 2 -G "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".fa -p --countReadPairs -C -T "$THREADS" $(cat "$SARA"/sheets/"$ID".csv | sed '1d' | awk -F, -v ALIGN_PATH="$SARA"/analysis/"$ID"/align/ '{print ALIGN_PATH $1"_FP_BT2_GRCh38.sam"}' | xargs)
                 elif [[ "$TRIMM" == [Ff][Aa][Ss][Tt][Pp] ]] && [[ "$MAPPING" == [Bb][Oo][Ww][Tt][Ii][Ee][2] ]] && [[ "$REFERENCE" == [Gg][Rr][Cc][Mm][3][9] ]]; then
-                    featureCounts -a "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".gff3 -o "$SARA"/analysis/"$ID"/counts/"$ID"_"$TRIMMID"_"$MAPPINGID"_"$COUNTID".counts.txt -s 2 -G "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".fa -p --countReadPairs -C -T "$THREADS" $(cat "$SARA"/sheets/"$ID".csv | sed '1d' | awk -F, -v ALIGN_PATH="$SARA"/analysis/"$ID"/align/ '{print ALIGN_PATH $1"_FP_BT2_GRCm39.bam"}' | xargs)
+                    featureCounts -a "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".gtf -o "$SARA"/analysis/"$ID"/counts/"$ID"_"$TRIMMID"_"$MAPPINGID"_"$COUNTID".counts.txt -s 2 -G "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".fa -p --countReadPairs -C -T "$THREADS" $(cat "$SARA"/sheets/"$ID".csv | sed '1d' | awk -F, -v ALIGN_PATH="$SARA"/analysis/"$ID"/align/ '{print ALIGN_PATH $1"_FP_BT2_GRCm39.sam"}' | xargs)
                 elif [[ "$TRIMM" == [Ff][Aa][Ss][Tt][Pp] ]] && [[ "$MAPPING" == [Bb][Oo][Ww][Tt][Ii][Ee][2] ]] && [[ "$REFERENCE" == [Cc][Hh][Mm][1][3] ]]; then
-                    featureCounts -a "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".gff3 -o "$SARA"/analysis/"$ID"/counts/"$ID"_"$TRIMMID"_"$MAPPINGID"_"$COUNTID".counts.txt -s 2 -G "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".fa -p --countReadPairs -C -T "$THREADS" $(cat "$SARA"/sheets/"$ID".csv | sed '1d' | awk -F, -v ALIGN_PATH="$SARA"/analysis/"$ID"/align/ '{print ALIGN_PATH $1"_FP_BT2_CHM13.bam"}' | xargs)
+                    featureCounts -a "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".gff3 -o "$SARA"/analysis/"$ID"/counts/"$ID"_"$TRIMMID"_"$MAPPINGID"_"$COUNTID".counts.txt -s 2 -G "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".fa -p --countReadPairs -C -T "$THREADS" $(cat "$SARA"/sheets/"$ID".csv | sed '1d' | awk -F, -v ALIGN_PATH="$SARA"/analysis/"$ID"/align/ '{print ALIGN_PATH $1"_FP_BT2_CHM13.sam"}' | xargs)
                 elif [[ "$TRIMM" == [Ff][Aa][Ss][Tt][Pp] ]] && [[ "$MAPPING" == [Hh][Ii][Ss][Aa][Tt][2] ]] && [[ "$REFERENCE" == [Gg][Rr][Cc][Hh][3][7] ]]; then
-                    featureCounts -a "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".gff3 -o "$SARA"/analysis/"$ID"/counts/"$ID"_"$TRIMMID"_"$MAPPINGID"_"$COUNTID".counts.txt -s 2 -G "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".fa -p --countReadPairs -C -T "$THREADS" $(cat "$SARA"/sheets/"$ID".csv | sed '1d' | awk -F, -v ALIGN_PATH="$SARA"/analysis/"$ID"/align/ '{print ALIGN_PATH $1"_FP_HT2_GRCh37.bam"}' | xargs)
+                    featureCounts -a "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".gtf -o "$SARA"/analysis/"$ID"/counts/"$ID"_"$TRIMMID"_"$MAPPINGID"_"$COUNTID".counts.txt -s 2 -G "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".fa -p --countReadPairs -C -T "$THREADS" $(cat "$SARA"/sheets/"$ID".csv | sed '1d' | awk -F, -v ALIGN_PATH="$SARA"/analysis/"$ID"/align/ '{print ALIGN_PATH $1"_FP_HT2_GRCh37.sam"}' | xargs)
                 elif [[ "$TRIMM" == [Ff][Aa][Ss][Tt][Pp] ]] && [[ "$MAPPING" == [Hh][Ii][Ss][Aa][Tt][2] ]] && [[ "$REFERENCE" == [Gg][Rr][Cc][Hh][3][8] ]]; then
-                    featureCounts -a "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".gff3 -o "$SARA"/analysis/"$ID"/counts/"$ID"_"$TRIMMID"_"$MAPPINGID"_"$COUNTID".counts.txt -s 2 -G "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".fa -p --countReadPairs -C -T "$THREADS" $(cat "$SARA"/sheets/"$ID".csv | sed '1d' | awk -F, -v ALIGN_PATH="$SARA"/analysis/"$ID"/align/ '{print ALIGN_PATH $1"_FP_HT2_GRCh38.bam"}' | xargs)
+                    featureCounts -a "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".gtf -o "$SARA"/analysis/"$ID"/counts/"$ID"_"$TRIMMID"_"$MAPPINGID"_"$COUNTID".counts.txt -s 2 -G "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".fa -p --countReadPairs -C -T "$THREADS" $(cat "$SARA"/sheets/"$ID".csv | sed '1d' | awk -F, -v ALIGN_PATH="$SARA"/analysis/"$ID"/align/ '{print ALIGN_PATH $1"_FP_HT2_GRCh38.sam"}' | xargs)
                 elif [[ "$TRIMM" == [Ff][Aa][Ss][Tt][Pp] ]] && [[ "$MAPPING" == [Hh][Ii][Ss][Aa][Tt][2] ]] && [[ "$REFERENCE" == [Gg][Rr][Cc][Mm][3][9] ]]; then
-                    featureCounts -a "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".gff3 -o "$SARA"/analysis/"$ID"/counts/"$ID"_"$TRIMMID"_"$MAPPINGID"_"$COUNTID".counts.txt -s 2 -G "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".fa -p --countReadPairs -C -T "$THREADS" $(cat "$SARA"/sheets/"$ID".csv | sed '1d' | awk -F, -v ALIGN_PATH="$SARA"/analysis/"$ID"/align/ '{print ALIGN_PATH $1"_FP_HT2_GRCm39.bam"}' | xargs)
+                    featureCounts -a "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".gtf -o "$SARA"/analysis/"$ID"/counts/"$ID"_"$TRIMMID"_"$MAPPINGID"_"$COUNTID".counts.txt -s 2 -G "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".fa -p --countReadPairs -C -T "$THREADS" $(cat "$SARA"/sheets/"$ID".csv | sed '1d' | awk -F, -v ALIGN_PATH="$SARA"/analysis/"$ID"/align/ '{print ALIGN_PATH $1"_FP_HT2_GRCm39.sam"}' | xargs)
                 elif [[ "$TRIMM" == [Ff][Aa][Ss][Tt][Pp] ]] && [[ "$MAPPING" == [Hh][Ii][Ss][Aa][Tt][2] ]] && [[ "$REFERENCE" == [Cc][Hh][Mm][1][3] ]]; then
-                    featureCounts -a "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".gff3 -o "$SARA"/analysis/"$ID"/counts/"$ID"_"$TRIMMID"_"$MAPPINGID"_"$COUNTID".counts.txt -s 2 -G "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".fa -p --countReadPairs -C -T "$THREADS" $(cat "$SARA"/sheets/"$ID".csv | sed '1d' | awk -F, -v ALIGN_PATH="$SARA"/analysis/"$ID"/align/ '{print ALIGN_PATH $1"_FP_HT2_CHM13.bam"}' | xargs)
+                    featureCounts -a "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".gff3 -o "$SARA"/analysis/"$ID"/counts/"$ID"_"$TRIMMID"_"$MAPPINGID"_"$COUNTID".counts.txt -s 2 -G "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".fa -p --countReadPairs -C -T "$THREADS" $(cat "$SARA"/sheets/"$ID".csv | sed '1d' | awk -F, -v ALIGN_PATH="$SARA"/analysis/"$ID"/align/ '{print ALIGN_PATH $1"_FP_HT2_CHM13.sam"}' | xargs)
                 elif [[ "$TRIMM" == [Tt][Rr][Ii][Mm][Mm][Oo][Mm][Aa][Tt][Ii][Cc] ]] && [[ "$MAPPING" == [Ss][Tt][Aa][Rr] ]] && [[ "$REFERENCE" == [Gg][Rr][Cc][Hh][3][7] ]]; then
-                    featureCounts -a "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".gff3 -o "$SARA"/analysis/"$ID"/counts/"$ID"_"$TRIMMID"_"$MAPPINGID"_"$COUNTID".counts.txt -s 2 -G "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".fa -p --countReadPairs -C -T "$THREADS" $(cat "$SARA"/sheets/"$ID".csv | sed '1d' | awk -F, -v ALIGN_PATH="$SARA"/analysis/"$ID"/align/ '{print ALIGN_PATH $1"_TM_ST_GRCh37.Aligned.out.bam"}' | xargs)
+                    featureCounts -a "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".gtf -o "$SARA"/analysis/"$ID"/counts/"$ID"_"$TRIMMID"_"$MAPPINGID"_"$COUNTID".counts.txt -s 2 -G "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".fa -p --countReadPairs -C -T "$THREADS" $(cat "$SARA"/sheets/"$ID".csv | sed '1d' | awk -F, -v ALIGN_PATH="$SARA"/analysis/"$ID"/align/ '{print ALIGN_PATH $1"_TM_ST_GRCh37.Aligned.out.bam"}' | xargs)
                 elif [[ "$TRIMM" == [Tt][Rr][Ii][Mm][Mm][Oo][Mm][Aa][Tt][Ii][Cc] ]] && [[ "$MAPPING" == [Ss][Tt][Aa][Rr] ]] && [[ "$REFERENCE" == [Gg][Rr][Cc][Hh][3][8] ]]; then
-                    featureCounts -a "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".gff3 -o "$SARA"/analysis/"$ID"/counts/"$ID"_"$TRIMMID"_"$MAPPINGID"_"$COUNTID".counts.txt -s 2 -G "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".fa -p --countReadPairs -C -T "$THREADS" $(cat "$SARA"/sheets/"$ID".csv | sed '1d' | awk -F, -v ALIGN_PATH="$SARA"/analysis/"$ID"/align/ '{print ALIGN_PATH $1"_TM_ST_GRCh38.Aligned.out.bam"}' | xargs)
+                    featureCounts -a "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".gtf -o "$SARA"/analysis/"$ID"/counts/"$ID"_"$TRIMMID"_"$MAPPINGID"_"$COUNTID".counts.txt -s 2 -G "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".fa -p --countReadPairs -C -T "$THREADS" $(cat "$SARA"/sheets/"$ID".csv | sed '1d' | awk -F, -v ALIGN_PATH="$SARA"/analysis/"$ID"/align/ '{print ALIGN_PATH $1"_TM_ST_GRCh38.Aligned.out.bam"}' | xargs)
                 elif [[ "$TRIMM" == [Tt][Rr][Ii][Mm][Mm][Oo][Mm][Aa][Tt][Ii][Cc] ]] && [[ "$MAPPING" == [Ss][Tt][Aa][Rr] ]] && [[ "$REFERENCE" == [Gg][Rr][Cc][Mm][3][9] ]]; then
-                    featureCounts -a "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".gff3 -o "$SARA"/analysis/"$ID"/counts/"$ID"_"$TRIMMID"_"$MAPPINGID"_"$COUNTID".counts.txt -s 2 -G "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".fa -p --countReadPairs -C -T "$THREADS" $(cat "$SARA"/sheets/"$ID".csv | sed '1d' | awk -F, -v ALIGN_PATH="$SARA"/analysis/"$ID"/align/ '{print ALIGN_PATH $1"_TM_ST_GRCm39.Aligned.out.bam"}' | xargs)
+                    featureCounts -a "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".gtf -o "$SARA"/analysis/"$ID"/counts/"$ID"_"$TRIMMID"_"$MAPPINGID"_"$COUNTID".counts.txt -s 2 -G "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".fa -p --countReadPairs -C -T "$THREADS" $(cat "$SARA"/sheets/"$ID".csv | sed '1d' | awk -F, -v ALIGN_PATH="$SARA"/analysis/"$ID"/align/ '{print ALIGN_PATH $1"_TM_ST_GRCm39.Aligned.out.bam"}' | xargs)
                 elif [[ "$TRIMM" == [Tt][Rr][Ii][Mm][Mm][Oo][Mm][Aa][Tt][Ii][Cc] ]] && [[ "$MAPPING" == [Ss][Tt][Aa][Rr] ]] && [[ "$REFERENCE" == [Cc][Hh][Mm][1][3] ]]; then
                     featureCounts -a "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".gff3 -o "$SARA"/analysis/"$ID"/counts/"$ID"_"$TRIMMID"_"$MAPPINGID"_"$COUNTID".counts.txt -s 2 -G "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".fa -p --countReadPairs -C -T "$THREADS" $(cat "$SARA"/sheets/"$ID".csv | sed '1d' | awk -F, -v ALIGN_PATH="$SARA"/analysis/"$ID"/align/ '{print ALIGN_PATH $1"_TM_ST_CHM13.Aligned.out.bam"}' | xargs)
                 elif [[ "$TRIMM" == [Tt][Rr][Ii][Mm][Mm][Oo][Mm][Aa][Tt][Ii][Cc] ]] && [[ "$MAPPING" == [Bb][Oo][Ww][Tt][Ii][Ee][2] ]] && [[ "$REFERENCE" == [Gg][Rr][Cc][Hh][3][7] ]]; then
-                    featureCounts -a "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".gff3 -o "$SARA"/analysis/"$ID"/counts/"$ID"_"$TRIMMID"_"$MAPPINGID"_"$COUNTID".counts.txt -s 2 -G "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".fa -p --countReadPairs -C -T "$THREADS" $(cat "$SARA"/sheets/"$ID".csv | sed '1d' | awk -F, -v ALIGN_PATH="$SARA"/analysis/"$ID"/align/ '{print ALIGN_PATH $1"_TM_BT2_GRCh37.bam"}' | xargs)
+                    featureCounts -a "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".gtf -o "$SARA"/analysis/"$ID"/counts/"$ID"_"$TRIMMID"_"$MAPPINGID"_"$COUNTID".counts.txt -s 2 -G "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".fa -p --countReadPairs -C -T "$THREADS" $(cat "$SARA"/sheets/"$ID".csv | sed '1d' | awk -F, -v ALIGN_PATH="$SARA"/analysis/"$ID"/align/ '{print ALIGN_PATH $1"_TM_BT2_GRCh37.sam"}' | xargs)
                 elif [[ "$TRIMM" == [Tt][Rr][Ii][Mm][Mm][Oo][Mm][Aa][Tt][Ii][Cc] ]] && [[ "$MAPPING" == [Bb][Oo][Ww][Tt][Ii][Ee][2] ]] && [[ "$REFERENCE" == [Gg][Rr][Cc][Hh][3][8] ]]; then
-                    featureCounts -a "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".gff3 -o "$SARA"/analysis/"$ID"/counts/"$ID"_"$TRIMMID"_"$MAPPINGID"_"$COUNTID".counts.txt -s 2 -G "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".fa -p --countReadPairs -C -T "$THREADS" $(cat "$SARA"/sheets/"$ID".csv | sed '1d' | awk -F, -v ALIGN_PATH="$SARA"/analysis/"$ID"/align/ '{print ALIGN_PATH $1"_TM_BT2_GRCh38.bam"}' | xargs)
+                    featureCounts -a "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".gtf -o "$SARA"/analysis/"$ID"/counts/"$ID"_"$TRIMMID"_"$MAPPINGID"_"$COUNTID".counts.txt -s 2 -G "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".fa -p --countReadPairs -C -T "$THREADS" $(cat "$SARA"/sheets/"$ID".csv | sed '1d' | awk -F, -v ALIGN_PATH="$SARA"/analysis/"$ID"/align/ '{print ALIGN_PATH $1"_TM_BT2_GRCh38.sam"}' | xargs)
                 elif [[ "$TRIMM" == [Tt][Rr][Ii][Mm][Mm][Oo][Mm][Aa][Tt][Ii][Cc] ]] && [[ "$MAPPING" == [Bb][Oo][Ww][Tt][Ii][Ee][2] ]] && [[ "$REFERENCE" == [Gg][Rr][Cc][Mm][3][9] ]]; then
-                    featureCounts -a "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".gff3 -o "$SARA"/analysis/"$ID"/counts/"$ID"_"$TRIMMID"_"$MAPPINGID"_"$COUNTID".counts.txt -s 2 -G "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".fa -p --countReadPairs -C -T "$THREADS" $(cat "$SARA"/sheets/"$ID".csv | sed '1d' | awk -F, -v ALIGN_PATH="$SARA"/analysis/"$ID"/align/ '{print ALIGN_PATH $1"_TM_BT2_GRCm39.bam"}' | xargs)
+                    featureCounts -a "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".gtf -o "$SARA"/analysis/"$ID"/counts/"$ID"_"$TRIMMID"_"$MAPPINGID"_"$COUNTID".counts.txt -s 2 -G "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".fa -p --countReadPairs -C -T "$THREADS" $(cat "$SARA"/sheets/"$ID".csv | sed '1d' | awk -F, -v ALIGN_PATH="$SARA"/analysis/"$ID"/align/ '{print ALIGN_PATH $1"_TM_BT2_GRCm39.sam"}' | xargs)
                 elif [[ "$TRIMM" == [Tt][Rr][Ii][Mm][Mm][Oo][Mm][Aa][Tt][Ii][Cc] ]] && [[ "$MAPPING" == [Bb][Oo][Ww][Tt][Ii][Ee][2] ]] && [[ "$REFERENCE" == [Cc][Hh][Mm][1][3] ]]; then
-                    featureCounts -a "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".gff3 -o "$SARA"/analysis/"$ID"/counts/"$ID"_"$TRIMMID"_"$MAPPINGID"_"$COUNTID".counts.txt -s 2 -G "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".fa -p --countReadPairs -C -T "$THREADS" $(cat "$SARA"/sheets/"$ID".csv | sed '1d' | awk -F, -v ALIGN_PATH="$SARA"/analysis/"$ID"/align/ '{print ALIGN_PATH $1"_TM_BT2_CHM13.bam"}' | xargs)
+                    featureCounts -a "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".gff3 -o "$SARA"/analysis/"$ID"/counts/"$ID"_"$TRIMMID"_"$MAPPINGID"_"$COUNTID".counts.txt -s 2 -G "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".fa -p --countReadPairs -C -T "$THREADS" $(cat "$SARA"/sheets/"$ID".csv | sed '1d' | awk -F, -v ALIGN_PATH="$SARA"/analysis/"$ID"/align/ '{print ALIGN_PATH $1"_TM_BT2_CHM13.sam"}' | xargs)
                 elif [[ "$TRIMM" == [Tt][Rr][Ii][Mm][Mm][Oo][Mm][Aa][Tt][Ii][Cc] ]] && [[ "$MAPPING" == [Hh][Ii][Ss][Aa][Tt][2] ]] && [[ "$REFERENCE" == [Gg][Rr][Cc][Hh][3][7] ]]; then
-                    featureCounts -a "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".gff3 -o "$SARA"/analysis/"$ID"/counts/"$ID"_"$TRIMMID"_"$MAPPINGID"_"$COUNTID".counts.txt -s 2 -G "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".fa -p --countReadPairs -C -T "$THREADS" $(cat "$SARA"/sheets/"$ID".csv | sed '1d' | awk -F, -v ALIGN_PATH="$SARA"/analysis/"$ID"/align/ '{print ALIGN_PATH $1"_TM_HT2_GRCh37.bam"}' | xargs)
+                    featureCounts -a "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".gtf -o "$SARA"/analysis/"$ID"/counts/"$ID"_"$TRIMMID"_"$MAPPINGID"_"$COUNTID".counts.txt -s 2 -G "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".fa -p --countReadPairs -C -T "$THREADS" $(cat "$SARA"/sheets/"$ID".csv | sed '1d' | awk -F, -v ALIGN_PATH="$SARA"/analysis/"$ID"/align/ '{print ALIGN_PATH $1"_TM_HT2_GRCh37.sam"}' | xargs)
                 elif [[ "$TRIMM" == [Tt][Rr][Ii][Mm][Mm][Oo][Mm][Aa][Tt][Ii][Cc] ]] && [[ "$MAPPING" == [Hh][Ii][Ss][Aa][Tt][2] ]] && [[ "$REFERENCE" == [Gg][Rr][Cc][Hh][3][8] ]]; then
-                    featureCounts -a "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".gff3 -o "$SARA"/analysis/"$ID"/counts/"$ID"_"$TRIMMID"_"$MAPPINGID"_"$COUNTID".counts.txt -s 2 -G "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".fa -p --countReadPairs -C -T "$THREADS" $(cat "$SARA"/sheets/"$ID".csv | sed '1d' | awk -F, -v ALIGN_PATH="$SARA"/analysis/"$ID"/align/ '{print ALIGN_PATH $1"_TM_HT2_GRCh38.bam"}' | xargs)
+                    featureCounts -a "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".gtf -o "$SARA"/analysis/"$ID"/counts/"$ID"_"$TRIMMID"_"$MAPPINGID"_"$COUNTID".counts.txt -s 2 -G "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".fa -p --countReadPairs -C -T "$THREADS" $(cat "$SARA"/sheets/"$ID".csv | sed '1d' | awk -F, -v ALIGN_PATH="$SARA"/analysis/"$ID"/align/ '{print ALIGN_PATH $1"_TM_HT2_GRCh38.sam"}' | xargs)
                 elif [[ "$TRIMM" == [Tt][Rr][Ii][Mm][Mm][Oo][Mm][Aa][Tt][Ii][Cc] ]] && [[ "$MAPPING" == [Hh][Ii][Ss][Aa][Tt][2] ]] && [[ "$REFERENCE" == [Gg][Rr][Cc][Mm][3][9] ]]; then
-                    featureCounts -a "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".gff3 -o "$SARA"/analysis/"$ID"/counts/"$ID"_"$TRIMMID"_"$MAPPINGID"_"$COUNTID".counts.txt -s 2 -G "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".fa -p --countReadPairs -C -T "$THREADS" $(cat "$SARA"/sheets/"$ID".csv | sed '1d' | awk -F, -v ALIGN_PATH="$SARA"/analysis/"$ID"/align/ '{print ALIGN_PATH $1"_TM_HT2_GRCm39.bam"}' | xargs)
+                    featureCounts -a "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".gtf -o "$SARA"/analysis/"$ID"/counts/"$ID"_"$TRIMMID"_"$MAPPINGID"_"$COUNTID".counts.txt -s 2 -G "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".fa -p --countReadPairs -C -T "$THREADS" $(cat "$SARA"/sheets/"$ID".csv | sed '1d' | awk -F, -v ALIGN_PATH="$SARA"/analysis/"$ID"/align/ '{print ALIGN_PATH $1"_TM_HT2_GRCm39.sam"}' | xargs)
                 elif [[ "$TRIMM" == [Tt][Rr][Ii][Mm][Mm][Oo][Mm][Aa][Tt][Ii][Cc] ]] && [[ "$MAPPING" == [Hh][Ii][Ss][Aa][Tt][2] ]] && [[ "$REFERENCE" == [Cc][Hh][Mm][1][3] ]]; then
-                    featureCounts -a "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".gff3 -o "$SARA"/analysis/"$ID"/counts/"$ID"_"$TRIMMID"_"$MAPPINGID"_"$COUNTID".counts.txt -s 2 -G "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".fa -p --countReadPairs -C -T "$THREADS" $(cat "$SARA"/sheets/"$ID".csv | sed '1d' | awk -F, -v ALIGN_PATH="$SARA"/analysis/"$ID"/align/ '{print ALIGN_PATH $1"_TM_HT2_CHM13.bam"}' | xargs)
+                    featureCounts -a "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".gff3 -o "$SARA"/analysis/"$ID"/counts/"$ID"_"$TRIMMID"_"$MAPPINGID"_"$COUNTID".counts.txt -s 2 -G "$SARA"/analysis/"$ID"/reference/"$REFERENCEID".fa -p --countReadPairs -C -T "$THREADS" $(cat "$SARA"/sheets/"$ID".csv | sed '1d' | awk -F, -v ALIGN_PATH="$SARA"/analysis/"$ID"/align/ '{print ALIGN_PATH $1"_TM_HT2_CHM13.sam"}' | xargs)
                 else
                     echo "" && echo "ATTENTION ON COUNTING SETUP!!!"
                     echo "" && echo "Please check your CSV sheet."
-                    echo "" && echo "The name of the CSV file must corresponds the name of the library and contains comma-separated programs on the first line (i.e. 'trimm,mapping,count,deg)."
+                    echo "" && echo "The name of the CSV file must corresponds the name of the library and contains comma-separated programs on the first line (i.e. 'trimm,reference,mapping,count,deg)."
                     echo "" && echo "From the second line on, it must contain the list of samples and the condition, also separated by a comma [CTRL are controls; EXP are experimentals]." && echo ""
                 fi
             fi
