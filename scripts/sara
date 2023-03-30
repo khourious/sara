@@ -213,8 +213,6 @@ bg() {
                     echo "" && echo "From the second line on, it must contain the list of samples and the condition, also separated by a comma [CTRL are controls; EXP are experimentals]." && echo ""
                 fi
             done
-        fi           fi
-            done
         fi
         COUNT=$(cat "$SARA"/sheets/"$ID".csv | sed -n 1p | awk -F, '{print $4}')
         COUNTID=FC
