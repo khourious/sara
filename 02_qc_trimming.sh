@@ -15,8 +15,8 @@ mkdir -p "$fastp_dir"
 
 # --- Loop para encontrar e concatenar arquivos
 for i in $(find "$input_dir" -type f -name '*_L00*.fastq.gz' | awk -F/ '{print $NF}' | awk -F'_L' '{print $1}' | sort -u); do
-    cat "$input_dir"/"$i"_L00*_R1_001.fastq.gz > "$concat_dir"/"$i".R1.fastq.gz
-    cat "$input_dir"/"$i"_L00*_R2_001.fastq.gz > "$concat_dir"/"$i".R2.fastq.gz
+    cat "$input_dir"/"$i"_L00*_R1_*.fastq.gz > "$concat_dir"/"$i".R1.fastq.gz
+    cat "$input_dir"/"$i"_L00*_R2_*.fastq.gz > "$concat_dir"/"$i".R2.fastq.gz
 done
 
 
