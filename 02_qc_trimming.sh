@@ -40,7 +40,7 @@ done
 multiqc "$fastqc_dir" --filename "Relatorio_Final_MultiQC.html" -o "$multiqc_dir"
 
 # --- Filtar e Trimming
-for file in "$input_dir"/*.R*.fastq.gz; do
+for file in "$concat_dir"/*.R*.fastq.gz; do
     sample_name=$(basename "$file" | sed 's/.R[12].fastq.gz//')
 
     echo "Processando $sample_name..."
