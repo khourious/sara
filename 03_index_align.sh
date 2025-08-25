@@ -88,8 +88,6 @@ for sam_file in "$align_dir"/*.hisat2.sam; do
     samtools quickcheck "$bam_file" || { echo "Error: BAM corrompido em $sample_name"; exit 1; }
 
     # --- Eliminar arquivos temporários
-    echo "Limpando arquivos temporários."
-    rm "${bam_file%.sorted.bam}.bam"
     rm "$sam_file"
 
     echo "Conversão completada para $sample_name"
