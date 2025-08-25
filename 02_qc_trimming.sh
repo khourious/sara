@@ -44,10 +44,10 @@ for file in "$concat_dir"/*.R*.fastq.gz; do
     sample_name=$(basename "$file" | sed 's/.R[12].fastq.gz//')
 
     echo "Processando $sample_name..."
-
-    fastp -f 1 -t 1 -3 -5 -W 4 -M 25 -l 40 \ #adapt for your dataset
-        --in1 "$input_dir"/"$sample_name".R1.fastq.gz \
-        --in2 "$input_dir"/"$sample_name".R2.fastq.gz \
+    #adapt for your dataset
+    fastp -f 1 -t 1 -3 -5 -W 4 -M 25 -l 40 \ 
+        --in1 "$concat_dir"/"$sample_name".R1.fastq.gz \
+        --in2 "$concat_dir"/"$sample_name".R2.fastq.gz \
         --out1 "$fastp_dir"/"$sample_name"_FP.R1.paired.fastq.gz \
         --out2 "$fastp_dir"/"$sample_name"_FP.R2.paired.fastq.gz \
         --unpaired1 "$fastp_dir"/"$sample_name"_FP.R1.unpaired.fastq.gz \
