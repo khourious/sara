@@ -7,10 +7,21 @@ conda activate rnaseq
 # --- Diretório onde estão os arquivos FASTQ originais
 input_dir="$HOME/your/analysis"
 concat_dir="$HOME/your/analysis/concat"
+fastqc_dir="$HOME/your/analysis/fastqc"
+fastqc_lane_dir="$HOME/your/analysis/fastqc_lane"
+multiqc_dir="$HOME/your/analysis/multiqc"
 fastp_dir="$HOME/your/analysis/fastp"
 
 mkdir -p "$concat_dir"
 mkdir -p "$fastp_dir"
+mkdir -p "$fastqc_dir"
+mkdir -p "$fastqc_lane_dir"
+mkdir -p "$multiqc_dir"
+
+# --- Loop para rodar FastQC nos arquivos originais
+for fq in $(find "$input_dir" -type f -name '*_L00*_R[12]_*.fastq.gz'); do
+    fastqc "$fq" --outdir="$fastqc_lane_dir"
+done
 
 
 # --- Loop para encontrar e concatenar arquivos
@@ -19,6 +30,14 @@ for i in $(find "$input_dir" -type f -name '*_L00*.fastq.gz' | awk -F/ '{print $
     cat "$input_dir"/"$i"_L00*_R2_*.fastq.gz > "$concat_dir"/"$i".R2.fastq.gz
 done
 
+# --- Loop para rodar FastQC nos arquivos concatenados
+
+
+for fq in "$concat_dir"/*.fastq.gz; do
+    fastqc "$fq" --outdir="$fastqc_dir"
+done
+
+multiqc "$fastqc_dir" --filename "Relatorio_Final_MultiQC.html" -o "$multiqc_dir"
 
 # --- Filtar e Trimming
 for file in "$input_dir"/*.R*.fastq.gz; do
