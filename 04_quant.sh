@@ -9,8 +9,28 @@ fastp_dir="$HOME/your/analisys/fastp"
 align_dir="$HOME/your/analisys/hisat2"
 quant_dir="$HOME/your/analisys/stringtie"
 prepde_script="$HOME/stringtie-2.2.1.Linux_x86_64/stringtie/prepDE.py3"
+counts_dir="$HOME/your/analisys/counts"
 
 mkdir -p "$quant_dir"
+mkdir -p "$counts_dir"
+
+# --- Quantificar com featureCounts
+for bam_file in "$align_dir"/*.hisat2.sorted.bam; do
+    sample_name=$(basename "$bam_file" .hisat2.sorted.bam)
+    output_file="$counts_dir/${sample_name}_counts.txt"
+
+    echo "🔍 Quantificando $sample_name..."
+
+    featureCounts \
+        -a genconde.v48.gtf \
+        -o "$output_file" \
+        -g gene_id \
+        -t exon \
+        -s 2 \
+        "$bam_file"
+
+    echo "Contagem finalizada para $sample_name. Resultado: $output_file"
+done
 
 # --- Quantificar com Stringtie
 
