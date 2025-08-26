@@ -59,8 +59,8 @@ echo "Conversão de SAM a BAM"
 
 for sam_file in "$align_dir"/*.hisat2.sam; do
     sample_name=$(basename "$sam_file" .hisat2.sam)
-    bam_index="$bam_file.bai"
     bam_file="$align_dir/$sample_name.hisat2.sorted.bam"
+    bam_index="$bam_file.bai"
     
     # --- Elimina arquivos desnecessários
     if [ -f "$bam_file" ] && [ -f "$bam_index" ]; then
