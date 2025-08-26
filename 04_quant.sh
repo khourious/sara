@@ -25,8 +25,8 @@ for bam_file in "$align_dir"/*.hisat2.sorted.bam; do
         -a genconde.v48.gtf \
         -o "$output_file" \
         -g gene_id \
-        -t exon \
-        -s 2 -p \
+        -t exon -o counts_gene.txt \
+        -s 2 -p -B -C \
         "$bam_file"
 
     echo "Contagem finalizada para $sample_name. Resultado: $output_file"
