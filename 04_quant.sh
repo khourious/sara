@@ -26,7 +26,7 @@ for bam_file in "$align_dir"/*.hisat2.sorted.bam; do
         -o "$output_file" \
         -g gene_id \
         -t exon \
-        -s 2 \
+        -s 2 -p \
         "$bam_file"
 
     echo "Contagem finalizada para $sample_name. Resultado: $output_file"
