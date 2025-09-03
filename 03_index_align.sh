@@ -23,7 +23,7 @@ unzip "$genome_index"/gencode.v48.gtf.gz
 # ---  Build HISAT2 index
 hisat2-build "$genome_index"/GRCh38.fa "$genome_index"/GRCh38/ #The resulting index files will use 'GRCh38' as their prefix.
 
-# --- Alinhar com HISAT2
+# --- Align com HISAT2
 
 for file in "$fastp_dir"/*_FP.R1.paired.fastq.gz; do
     # --- Extrair nome de amostras
@@ -53,7 +53,7 @@ for file in "$fastp_dir"/*_FP.R1.paired.fastq.gz; do
     echo "Alinhamento completado para $sample_name"
 done
 
-# --- Converter SAM a BAM
+# --- Convert SAM to BAM
 
 echo "Conversão de SAM a BAM"
 
@@ -99,3 +99,29 @@ for bam_file in "$align_dir"/*.hisat2.sorted.bam; do
     sample_name=$(basename "$bam_file" .hisat2.sorted.bam) 
     infer_experiment.py -r "$genome_index"/gencode.v48.gtf -i "$bam_file" > "$rseq_qc"/"${sample_name}_strandness.txt"
 done
+
+# --- align and quantify with Salmon
+
+# --- se necessário, separar os genes anotados no GFF3
+gffread anotation.gff3 -g genoma.fasta -w transcritos.fa
+
+# --- Build index
+salmon index -t transcritos.fa -i salmon_index --type quasi
+
+# --- Align
+
+for file in "$fastp_dir"/*_FP.R1.paired.fastq.gz; do
+    # --- Extrair nome de amostras
+    sample_name=$(basename "$file" | sed 's/_FP\.R1\.paired\.fastq\.gz//')
+    # --- Arquivos de entrada
+    r1_file="$fastp_dir/${sample_name}_FP.R1.paired.fastq.gz"
+    r2_file="$fastp_dir/${sample_name}_FP.R2.paired.fastq.gz"
+
+    salmon quant-i salmon_index -l A \
+           -1 "$r1_file" \
+           -2 "$r2_file" \
+           --validateMappings -o sample_quant
+
+    echo "Alinhamento completado para $sample_name"
+done
+
