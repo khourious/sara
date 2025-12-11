@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Submission_guide_NCBI.md</title>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+
+<style>
+/* https://github.com/microsoft/vscode/blob/master/extensions/markdown-language-features/media/markdown.css */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+body {
+	font-family: var(--vscode-markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif);
+	font-size: var(--vscode-markdown-font-size, 14px);
+	padding: 0 26px;
+	line-height: var(--vscode-markdown-line-height, 22px);
+	word-wrap: break-word;
+}
+
+#code-csp-warning {
+	position: fixed;
+	top: 0;
+	right: 0;
+	color: white;
+	margin: 16px;
+	text-align: center;
+	font-size: 12px;
+	font-family: sans-serif;
+	background-color:#444444;
+	cursor: pointer;
+	padding: 6px;
+	box-shadow: 1px 1px 1px rgba(0,0,0,.25);
+}
+
+#code-csp-warning:hover {
+	text-decoration: none;
+	background-color:#007acc;
+	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
+}
+
+body.scrollBeyondLastLine {
+	margin-bottom: calc(100vh - 22px);
+}
+
+body.showEditorSelection .code-line {
+	position: relative;
+}
+
+body.showEditorSelection .code-active-line:before,
+body.showEditorSelection .code-line:hover:before {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 0;
+	left: -12px;
+	height: 100%;
+}
+
+body.showEditorSelection li.code-active-line:before,
+body.showEditorSelection li.code-line:hover:before {
+	left: -30px;
+}
+
+.vscode-light.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.15);
+}
+
+.vscode-light.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.40);
+}
+
+.vscode-light.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-dark.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.4);
+}
+
+.vscode-dark.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.60);
+}
+
+.vscode-dark.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-high-contrast.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 160, 0, 0.7);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 160, 0, 1);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+img {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+a {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+	outline: 1px solid -webkit-focus-ring-color;
+	outline-offset: -1px;
+}
+
+hr {
+	border: 0;
+	height: 2px;
+	border-bottom: 2px solid;
+}
+
+h1 {
+	padding-bottom: 0.3em;
+	line-height: 1.2;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+h1, h2, h3 {
+	font-weight: normal;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+table > thead > tr > th {
+	text-align: left;
+	border-bottom: 1px solid;
+}
+
+table > thead > tr > th,
+table > thead > tr > td,
+table > tbody > tr > th,
+table > tbody > tr > td {
+	padding: 5px 10px;
+}
+
+table > tbody > tr + tr > td {
+	border-top: 1px solid;
+}
+
+blockquote {
+	margin: 0 7px 0 5px;
+	padding: 0 16px 0 10px;
+	border-left-width: 5px;
+	border-left-style: solid;
+}
+
+code {
+	font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
+	font-size: 1em;
+	line-height: 1.357em;
+}
+
+body.wordWrap pre {
+	white-space: pre-wrap;
+}
+
+pre:not(.hljs),
+pre.hljs code > div {
+	padding: 16px;
+	border-radius: 3px;
+	overflow: auto;
+}
+
+pre code {
+	color: var(--vscode-editor-foreground);
+	tab-size: 4;
+}
+
+/** Theming */
+
+.vscode-light pre {
+	background-color: rgba(220, 220, 220, 0.4);
+}
+
+.vscode-dark pre {
+	background-color: rgba(10, 10, 10, 0.4);
+}
+
+.vscode-high-contrast pre {
+	background-color: rgb(0, 0, 0);
+}
+
+.vscode-high-contrast h1 {
+	border-color: rgb(0, 0, 0);
+}
+
+.vscode-light table > thead > tr > th {
+	border-color: rgba(0, 0, 0, 0.69);
+}
+
+.vscode-dark table > thead > tr > th {
+	border-color: rgba(255, 255, 255, 0.69);
+}
+
+.vscode-light h1,
+.vscode-light hr,
+.vscode-light table > tbody > tr + tr > td {
+	border-color: rgba(0, 0, 0, 0.18);
+}
+
+.vscode-dark h1,
+.vscode-dark hr,
+.vscode-dark table > tbody > tr + tr > td {
+	border-color: rgba(255, 255, 255, 0.18);
+}
+
+</style>
+
+<style>
+/* Tomorrow Theme */
+/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
+/* Original theme - https://github.com/chriskempson/tomorrow-theme */
+
+/* Tomorrow Comment */
+.hljs-comment,
+.hljs-quote {
+	color: #8e908c;
+}
+
+/* Tomorrow Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+	color: #c82829;
+}
+
+/* Tomorrow Orange */
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link {
+	color: #f5871f;
+}
+
+/* Tomorrow Yellow */
+.hljs-attribute {
+	color: #eab700;
+}
+
+/* Tomorrow Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+	color: #718c00;
+}
+
+/* Tomorrow Blue */
+.hljs-title,
+.hljs-section {
+	color: #4271ae;
+}
+
+/* Tomorrow Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+	color: #8959a8;
+}
+
+.hljs {
+	display: block;
+	overflow-x: auto;
+	color: #4d4d4c;
+	padding: 0.5em;
+}
+
+.hljs-emphasis {
+	font-style: italic;
+}
+
+.hljs-strong {
+	font-weight: bold;
+}
+</style>
+
+<style>
+/*
+ * Markdown PDF CSS
+ */
+
+ body {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
+	padding: 0 12px;
+}
+
+pre {
+	background-color: #f8f8f8;
+	border: 1px solid #cccccc;
+	border-radius: 3px;
+	overflow-x: auto;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+pre:not(.hljs) {
+	padding: 23px;
+	line-height: 19px;
+}
+
+blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.emoji {
+	height: 1.4em;
+}
+
+code {
+	font-size: 14px;
+	line-height: 19px;
+}
+
+/* for inline code */
+:not(pre):not(.hljs) > code {
+	color: #C9AE75; /* Change the old color so it seems less like an error */
+	font-size: inherit;
+}
+
+/* Page Break : use <div class="page"/> to insert page break
+-------------------------------------------------------- */
+.page {
+	page-break-after: always;
+}
+
+</style>
+
+<script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+</head>
+<body>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: document.body.classList.contains('vscode-dark') || document.body.classList.contains('vscode-high-contrast')
+          ? 'dark'
+          : 'default'
+    });
+  </script>
+<h1 id="guia-de-submiss%C3%A3o-para-bioproject-biosample-sra-e-geo">Guia de Submissão para BioProject, BioSample, SRA e GEO</h1>
+<blockquote>
+<p>Este documento explica como preparar os metadados necessários para submissão de experimentos de RNA-seq ao NCBI. Ele inclui exemplos práticos e instruções claras para compilar cada tabela.</p>
+</blockquote>
+<blockquote>
+<p>Você pode montar os metadados usando Excel, Google Sheets, LibreOffice Calc ou até um script em R/Python</p>
+</blockquote>
+<h2 id="por-que-metadados-organizados-s%C3%A3o-essenciais">Por que metadados organizados são essenciais?</h2>
+<ul>
+<li>
+<p>Reprodutibilidade: outros pesquisadores podem validar e reutilizar seus dados com segurança.</p>
+</li>
+<li>
+<p>Interoperabilidade: ao seguir padrões internacionais, seus dados ficam visíveis em portais como GEO, SRA e ENA.</p>
+</li>
+<li>
+<p>Buscabilidade: bons metadados permitem que seus dados sejam facilmente encontrados por palavras-chave.</p>
+</li>
+<li>
+<p>Contextualização: descrevem o experimento, condições, grupos e protocolos com riqueza de detalhes.</p>
+</li>
+<li>
+<p>Compliance: repositórios públicos exigem certas informações obrigatórias.</p>
+</li>
+</ul>
+<hr>
+<h1 id="1-worflow">1. Worflow</h1>
+<pre><code>        [ BioProject ]
+            ↓
+     ┌──────┴──────┐
+ [ BioSample ]   [ Experiment metadata ]
+      ↓                   ↓
+   [ SRA ]            [ GEO ]
+</code></pre>
+<hr>
+<ol>
+<li>
+<p>Organize todos os metadados em .tsv para BioSample, SRA e GEO</p>
+</li>
+<li>
+<p>Crie seu BioProject primeiro</p>
+</li>
+<li>
+<p>Submeta os BioSamples individualmente ou via planilha</p>
+</li>
+<li>
+<p>Envie os arquivos brutos (FASTQ) pelo SRA</p>
+</li>
+<li>
+<p>Envie os arquivos processados (matriz de contagem) pelo GEO</p>
+</li>
+<li>
+<p>Vincule todos os IDs entre si (BioProject → BioSample → SRA/GEO)</p>
+</li>
+<li>
+<p>Finalize o envio e aguarde os validadores do NCBI</p>
+</li>
+</ol>
+<h3 id="o-que-%C3%A9-um-arquivo-tsv">O que é um arquivo .tsv?</h3>
+<p>TSV significa Tab-Separated Values — ou seja, um arquivo de texto onde cada coluna é separada por tabulação (TAB), e cada linha representa uma entrada (como uma amostra ou arquivo).</p>
+<p>É muito parecido com um .csv (Comma-Separated Values), mas:</p>
+<table>
+<thead>
+<tr>
+<th>.csv</th>
+<th>.tsv</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Usa vírgulas entre os campos</td>
+<td>Usa tabulação (TAB)</td>
+</tr>
+<tr>
+<td>Pode causar conflitos com vírgulas no texto</td>
+<td>Mais seguro para metadados textuais</td>
+</tr>
+<tr>
+<td>Extensão: .csv</td>
+<td>Extensão: .tsv</td>
+</tr>
+</tbody>
+</table>
+<p>Se estiver no Excel:</p>
+<ol>
+<li>
+<p>Clique em Arquivo &gt; Salvar como</p>
+</li>
+<li>
+<p>Escolha o tipo &quot;Texto (separado por tabulação) (.txt)&quot;*</p>
+</li>
+<li>
+<p>Renomeie a extensão de .txt para .tsv (se necessário)</p>
+</li>
+</ol>
+<p>No Google Sheets:</p>
+<ol>
+<li>Vá em Arquivo &gt; Fazer download &gt; Valores separados por tabulação (.tsv)</li>
+</ol>
+<hr>
+<h2 id="2-bioproject">2. BioProject</h2>
+<blockquote>
+<p>O BioProject agrupa todas as amostras e dados de um estudo. <em>Crie apenas um BioProject por estudo.</em></p>
+</blockquote>
+<blockquote>
+<p>É necessário criar um login no NCBI para isso.</p>
+</blockquote>
+<ul>
+<li>
+<p><strong>Exemplo</strong>:</p>
+<ul>
+<li><strong>project_title</strong>: Transcriptomic profiling of PBMCs during CHIKV infection</li>
+<li><strong>description</strong>: RNA-seq of CHIKV-infected PBMCs to study differential gene expression across timepoints.</li>
+<li><strong>organism</strong>: <em>Homo sapiens</em></li>
+<li><strong>data_type</strong>: Transcriptome data</li>
+</ul>
+</li>
+<li>
+<p>Crie pelo site: https://submit.ncbi.nlm.nih.gov/subs/bioproject</p>
+</li>
+<li>
+<p>Quando enviado, ele gera um código PRJNAxxxxx (ex: <code>PRJNA123456</code>)</p>
+</li>
+</ul>
+<hr>
+<h2 id="3-biosample">3. BioSample</h2>
+<p>Cada amostra biológica recebe uma entrada única. Os metadados aqui descrevem o material de onde vieram os dados.</p>
+<ul>
+<li><strong>Campos principais</strong>:</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>sample_name</th>
+<th>organism</th>
+<th>tissue</th>
+<th>collection_date</th>
+<th>disease</th>
+<th>geo_loc_name</th>
+<th>bioproject_accession</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CHIKV_01</td>
+<td>Homo sapiens</td>
+<td>PBMC</td>
+<td>2023-03-05</td>
+<td>Chikungunya fever</td>
+<td>Brazil: Bahia</td>
+<td>PRJNA123456</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>Crie BioSamples vinculados ao seu BioProject pelo mesmo portal (https://submit.ncbi.nlm.nih.gov/subs/bioproject), ou prepare o upload em lote com .tsv.</li>
+</ul>
+<p>Dê preferência a tabelas mais completas, como:</p>
+<table>
+<thead>
+<tr>
+<th>sample_name</th>
+<th>organism</th>
+<th>isolate</th>
+<th>sex</th>
+<th>age</th>
+<th>tissue</th>
+<th>cell_type</th>
+<th>disease</th>
+<th>treatment</th>
+<th>time_point</th>
+<th>geo_loc_name</th>
+<th>collection_date</th>
+<th>description</th>
+<th>bioproject_accession</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CHIKV_01</td>
+<td>Homo sapiens</td>
+<td>CHIKV_Ba01</td>
+<td>F</td>
+<td>35</td>
+<td>Peripheral blood</td>
+<td>PBMC</td>
+<td>Chikungunya fever</td>
+<td>CHIKV infection</td>
+<td>3 dpi</td>
+<td>Brazil: Bahia</td>
+<td>2023-03-05</td>
+<td>PBMCs isolated 3 days post CHIKV infection</td>
+<td>PRJNA123456</td>
+</tr>
+<tr>
+<td>CHIKV_02</td>
+<td>Homo sapiens</td>
+<td>CHIKV_Ba02</td>
+<td>M</td>
+<td>42</td>
+<td>Peripheral blood</td>
+<td>PBMC</td>
+<td>Chikungunya fever</td>
+<td>CHIKV infection</td>
+<td>5 dpi</td>
+<td>Brazil: Bahia</td>
+<td>2023-03-07</td>
+<td>PBMCs isolated 5 days post CHIKV infection</td>
+<td>PRJNA123456</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>Essa tabela pode ser salva como <code>biosample_metadata.tsv</code></p>
+</blockquote>
+<p>Após o envio, o sistema retorna accessions para cada amostra como:</p>
+<pre class="hljs"><code><div>SAMN45678901
+SAMN45678902
+</div></code></pre>
+<hr>
+<h2 id="4-metadados-sra">4. Metadados SRA</h2>
+<p>Aqui você descreve os arquivos <code>.fastq.gz</code>, tipo de biblioteca, plataforma usada, etc.</p>
+<p>O SRA aceita:</p>
+<ul>
+<li>
+<p>Arquivos .fastq (brutos) ou .bam (alinhados)</p>
+</li>
+<li>
+<p>Metadados completos da biblioteca:</p>
+</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>sample_name</th>
+<th>biosample_accession</th>
+<th>library_strategy</th>
+<th>library_layout</th>
+<th>filename</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CHIKV_01</td>
+<td>SAMN45678901</td>
+<td>RNA-Seq</td>
+<td>PAIRED</td>
+<td>CHIKV_01_R1.fastq.gz;CHIKV_01_R2.fastq.gz</td>
+</tr>
+</tbody>
+</table>
+<p>Atenção: os arquivos <code>.fastq.gz</code> devem estar nomeados de forma consistente com este campo.</p>
+<p>Quanto mais detalhado, melhor para quem vai reutilizar seus dados ou revisar seu estudo.</p>
+<table>
+<thead>
+<tr>
+<th>sample_name</th>
+<th>biosample_accession</th>
+<th>library_ID</th>
+<th>title</th>
+<th>library_strategy</th>
+<th>library_source</th>
+<th>library_selection</th>
+<th>library_layout</th>
+<th>platform</th>
+<th>instrument_model</th>
+<th>insert_size</th>
+<th>filetype</th>
+<th>filename</th>
+<th>design_description</th>
+<th>library_construction_protocol</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CHIKV_01</td>
+<td>SAMN45678901</td>
+<td>LIB01</td>
+<td>RNA-seq of CHIKV-infected PBMCs 3dpi</td>
+<td>RNA-Seq</td>
+<td>TRANSCRIPTOMIC</td>
+<td>RANDOM</td>
+<td>PAIRED</td>
+<td>ILLUMINA</td>
+<td>Illumina NovaSeq 6000</td>
+<td>280</td>
+<td>fastq</td>
+<td>CHIKV_01_R1.fastq.gz;CHIKV_01_R2.fastq.gz</td>
+<td>Total RNA from PBMCs infected with CHIKV, sequenced paired-end 2×75 bp.</td>
+<td>TruSeq Stranded Total RNA Library Prep Kit with rRNA depletion</td>
+</tr>
+<tr>
+<td>CHIKV_02</td>
+<td>SAMN45678902</td>
+<td>LIB02</td>
+<td>RNA-seq of CHIKV-infected PBMCs 5dpi</td>
+<td>RNA-Seq</td>
+<td>TRANSCRIPTOMIC</td>
+<td>RANDOM</td>
+<td>PAIRED</td>
+<td>ILLUMINA</td>
+<td>Illumina NovaSeq 6000</td>
+<td>280</td>
+<td>fastq</td>
+<td>CHIKV_02_R1.fastq.gz;CHIKV_02_R2.fastq.gz</td>
+<td>Total RNA from PBMCs infected with CHIKV, sequenced paired-end 2×75 bp.</td>
+<td>TruSeq Stranded Total RNA Library Prep Kit with rRNA depletion</td>
+</tr>
+</tbody>
+</table>
+<p>Adicione outros campos se quiser mais detalhes (ex: basecaller, software de alinhamento). Salve como <code>sra_metadata.tsv</code></p>
+<hr>
+<h2 id="5-metadados-geo">5. Metadados GEO</h2>
+<p>O GEO (Gene Expression Omnibus) é um repositório público do NCBI focado em dados de expressão gênica processados, incluindo:</p>
+<table>
+<thead>
+<tr>
+<th>Tipo de arquivo</th>
+<th>Extensão</th>
+<th>Exemplo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Matriz de contagem</td>
+<td><code>.tsv</code>, <code>.csv</code></td>
+<td><code>counts_matrix.tsv</code></td>
+</tr>
+<tr>
+<td>Contagens por amostra</td>
+<td><code>.tsv</code>, <code>.txt</code></td>
+<td><code>counts_CHIKV_01.tsv</code></td>
+</tr>
+<tr>
+<td>Arquivos normalizados</td>
+<td><code>.tsv</code>, <code>.rds</code></td>
+<td><code>normalized_counts.rds</code></td>
+</tr>
+<tr>
+<td>Scripts ou pipelines</td>
+<td><code>.R</code>, <code>.sh</code>, <code>.ipynb</code></td>
+<td><code>deseq2_analysis.R</code></td>
+</tr>
+<tr>
+<td>Metadados das amostras</td>
+<td><code>.tsv</code></td>
+<td><code>geo_sample_metadata.tsv</code></td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>Você também pode incluir diagramas de fluxo experimental, fatores de batch, e até RIN e concentração do RNA.</li>
+</ul>
+<hr>
+<h3 id="tabela-simples">Tabela simples:</h3>
+<table>
+<thead>
+<tr>
+<th>title</th>
+<th>biosample_accession</th>
+<th>source_name</th>
+<th>organism</th>
+<th>treatment</th>
+<th>time_point</th>
+<th>file_type</th>
+<th>file_name</th>
+<th>BioProject</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Expression of PBMCs CHIKV 3dpi</td>
+<td>SAMN45678901</td>
+<td>PBMC</td>
+<td>Homo sapiens</td>
+<td>CHIKV</td>
+<td>3dpi</td>
+<td>Counts</td>
+<td>counts_CHIKV_01.tsv</td>
+<td>PRJNA123456</td>
+</tr>
+</tbody>
+</table>
+<p>Prepare com base em GEO submission templates: https://www.ncbi.nlm.nih.gov/geo/info/submission.html?form=MG0AV3</p>
+<h3 id="exemplo-mais-completo">Exemplo mais completo:</h3>
+<table>
+<thead>
+<tr>
+<th>sample_title</th>
+<th>biosample_accession</th>
+<th>source_name</th>
+<th>organism</th>
+<th>characteristics_ch1</th>
+<th>time_point</th>
+<th>treatment</th>
+<th>protocol_ch1</th>
+<th>data_processing</th>
+<th>file_name</th>
+<th>file_type</th>
+<th>BioProject</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CHIKV_01</td>
+<td>SAMN45678901</td>
+<td>PBMC</td>
+<td>Homo sapiens</td>
+<td>disease: Chikungunya fever</td>
+<td>3 dpi</td>
+<td>CHIKV infection</td>
+<td>rRNA depletion + TruSeq</td>
+<td>alignment with HISAT2, counts with StringTie and prepDE</td>
+<td>counts_CHIKV_01.tsv</td>
+<td>TSV</td>
+<td>PRJNA123456</td>
+</tr>
+<tr>
+<td>CHIKV_02</td>
+<td>SAMN45678902</td>
+<td>PBMC</td>
+<td>Homo sapiens</td>
+<td>disease: Chikungunya fever</td>
+<td>5 dpi</td>
+<td>CHIKV infection</td>
+<td>rRNA depletion + TruSeq</td>
+<td>alignment with HISAT2, counts with StringTie and prepDE</td>
+<td>counts_CHIKV_02.tsv</td>
+<td>TSV</td>
+<td>PRJNA123456</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>O campo <code>characteristics_ch1</code> no GEO é extremamente flexível e poderoso — ele permite descrever várias características biológicas, clínicas ou técnicas da sua amostra, além da doença.</p>
+</blockquote>
+<hr>
+<h3 id="outro-exemplo-de-como-pode-ser-mais-completo">Outro exemplo de como pode ser mais completo:</h3>
+<table>
+<thead>
+<tr>
+<th>sample_title</th>
+<th>biosample_accession</th>
+<th>source_name</th>
+<th>organism</th>
+<th>characteristics_ch1</th>
+<th>characteristics_ch1</th>
+<th>characteristics_ch1</th>
+<th>characteristics_ch1</th>
+<th>time_point</th>
+<th>treatment</th>
+<th>protocol_ch1</th>
+<th>data_processing</th>
+<th>file_name</th>
+<th>file_type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CHIKV_01_3dpi</td>
+<td>SAMN45678901</td>
+<td>PBMC</td>
+<td>Homo sapiens</td>
+<td>disease: Chikungunya fever</td>
+<td>sex: female</td>
+<td>age: 35</td>
+<td>RIN: 8.5</td>
+<td>3 dpi</td>
+<td>CHIKV infection</td>
+<td>rRNA depletion + TruSeq</td>
+<td>alignment with HISAT2, counts with StringTie &amp; prepDE</td>
+<td>counts_CHIKV_01.tsv</td>
+<td>TSV</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="6-ferramentas-e-sites-%C3%BAteis">6. Ferramentas e Sites úteis</h2>
+<ul>
+<li>
+<p><code>pandoc</code> → conversão para PDF/HTML:</p>
+<pre class="hljs"><code><div>pandoc metadados_submissao.md -o metadados_submissao.pdf
+pandoc metadados_submissao.md -o metadados_submissao.html
+
+</div></code></pre>
+</li>
+<li>
+<p>https://submit.ncbi.nlm.nih.gov/?form=MG0AV3</p>
+</li>
+<li>
+<p>https://www.ncbi.nlm.nih.gov/sra/docs/submitmeta/?form=MG0AV3</p>
+</li>
+</ul>
+<hr>
+<h1 id="fluxograma-de-como-submeter">Fluxograma de como submeter</h1>
+<pre class="hljs"><code><div>PRJNA123456 (BioProject)
+  ├─ SAMN45678901 (BioSample)
+  │     ├─ SRRxxxxxxx (SRA - dados brutos)
+  │     └─ GSMxxxxxxx (GEO - expressão)
+</div></code></pre>
+<ol>
+<li>Crie seu BioProject</li>
+</ol>
+<ul>
+<li>
+<p>Acesse: https://submit.ncbi.nlm.nih.gov/subs/bioproject</p>
+</li>
+<li>
+<p>Preencha as informações sobre o estudo (título, organismo, tipo) como foi explicado acima</p>
+</li>
+<li>
+<p>Quando enviado, ele gera um código como: <code>PRJNA123456</code></p>
+</li>
+</ul>
+<ol start="2">
+<li>Submeta seus BioSamples</li>
+</ol>
+<p>Vá para: https://submit.ncbi.nlm.nih.gov/subs/biosample</p>
+<p>Ao preencher cada linha (via formulário ou .tsv), inclua o campo:</p>
+<pre class="hljs"><code><div>bioproject_accession
+PRJNA123456
+</div></code></pre>
+<p>Cada amostra recebe um código como: <code>SAMN45678901</code></p>
+<p>Cada BioSample deve ter um nome único (ex: CHIKV_01) e esse mesmo nome será usado nos metadados do SRA e GEO.</p>
+<ol start="3">
+<li>Submissão ao SRA (dados brutos)</li>
+</ol>
+<p>Acesse: https://submit.ncbi.nlm.nih.gov/subs/sra</p>
+<p>Faça upload dos arquivos <code>.fastq.gz</code></p>
+<p>No seu .tsv ou formulário, inclua:</p>
+<hr>
+<table>
+<thead>
+<tr>
+<th>sample_name</th>
+<th>biosample_accession</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CHIKV_01</td>
+<td>SAMN45678901</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<p>O SRA usará isso para fazer o vínculo entre seu <code>.fastq</code> e a amostra correta</p>
+<ol start="4">
+<li>Submissão ao GEO</li>
+</ol>
+<p>Acesse: https://submit.ncbi.nlm.nih.gov/subs/geo</p>
+<p>No <code>sample_metadata.tsv</code>, inclua:</p>
+<pre class="hljs"><code><div>BioSample         BioProject
+SAMN45678901      PRJNA123456
+</div></code></pre>
+<p>Revise e submeta para revisão. Após o envio, você recebe um GSE ID temporário (ex: <code>GSE123456</code>), e o time do NCBI faz a curadoria.</p>
+<p>Quando tudo está vinculado corretamente, qualquer pessoa (ou revisor!) poderá:</p>
+<p>Entrar no BioProject → Ver as BioSamples → Acessar os dados no SRA → Ver os arquivos processados no GEO — como se fosse um só estudo interligado.</p>
+<blockquote>
+<p>Para submeter arquivos processados</p>
+</blockquote>
+<p>ex: contagens por gene</p>
+<p>Entre em: https://submit.ncbi.nlm.nih.gov/subs/geo/</p>
+<ol>
+<li>
+<p>Crie uma nova submissão</p>
+</li>
+<li>
+<p>Escolha: Processed Data Submission (GSE)</p>
+</li>
+<li>
+<p>Faça upload:</p>
+<ul>
+<li>
+<p>Dos arquivos processados (.tsv, .rds, etc.)</p>
+</li>
+<li>
+<p>Da planilha de metadados</p>
+</li>
+<li>
+<p>Dos scripts ou suplementares</p>
+</li>
+</ul>
+</li>
+<li>
+<p>Preencha a descrição do estudo, protocolo, objetivos, etc.</p>
+</li>
+</ol>
+
+</body>
+</html>
