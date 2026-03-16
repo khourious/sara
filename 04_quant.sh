@@ -3,14 +3,14 @@
 
 set -euo pipefail
 
-source deactivate
+source activate rnaseq
 
 fastp_dir="$HOME/your/analisys/fastp"
 align_dir="$HOME/your/analisys/hisat2"
 quant_dir="$HOME/your/analisys/stringtie"
 genome_index="$HOME/your/analisys/hisat2_index"
 qc_dir="$HOME/your/analisys/rseqc"
-prepde_script="$HOME/stringtie-2.2.1.Linux_x86_64/stringtie/prepDE.py3"
+prepde_script="$HOME/stringtie-2.2.1.Linux_x86_64/prepDE.py3"
 
 mkdir -p "$quant_dir"
 mkdir -p "$qc_dir"
@@ -44,7 +44,7 @@ for gtf in "$quant_dir"/*.gtf; do
 done
 
 # Executa o prepDE.py
-"$prepde_script" -i sample_list.csv
+python3 "$prepde_script" -i sample_list.csv
 
 echo "Matriz de contagem gerada: gene_count_matrix.csv e transcript_count_matrix.csv"
 
