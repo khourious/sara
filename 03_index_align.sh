@@ -17,8 +17,8 @@ mkdir -p "$quant_dir"
 # --- Download your genome and index
 wget https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_48/GRCh38.p14.genome.fa.gz -O "$genome_index"/GRCh38.fa.gz
 wget https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_48/gencode.v48.annotation.gtf.gz -O "$genome_index"/gencode.v48.gtf.gz
-unzip "$genome_index"/GRCh38.fa.gz
-unzip "$genome_index"/gencode.v48.gtf.gz
+gunzip "$genome_index"/GRCh38.fa.gz
+gunzip "$genome_index"/gencode.v48.gtf.gz
 
 # ---  Build HISAT2 index
 hisat2-build "$genome_index"/GRCh38.fa "$genome_index"/GRCh38/ #The resulting index files will use 'GRCh38' as their prefix.
