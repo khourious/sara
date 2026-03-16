@@ -97,6 +97,37 @@ for sam_file in "$align_dir"/*.hisat2.sam; do
     echo "Conversão completada para $sample_name"
 done
 
+# --- Alinhar com HISAT2: single end
+
+for file in "$fastp_dir"/*.R1_FP.fastq.gz; do
+    # --- Extrair nome de amostras
+    sample_name=$(basename "$file" | sed 's/.R1\_FP\.fastq\.gz//')
+    sam_file="$align_dir/$sample_name.hisat2.sam"
+    bam_file="$align_dir/$sample_name.hisat2.sorted.bam"
+
+    # --- Verifica se já existe sam ou bam da amostra
+
+    if [ -f "$sam_file" ] || [ -f "$bam_file" ]; then 
+        echo "Alinhamento de $sample_name já existe. Pulando..."
+        continue
+    fi
+
+    # --- Arquivos de entrada
+    r1_file="$fastp_dir/${sample_name}.R1_FP.fastq.gz"
+
+    hisat2 --dta \
+       -x "$genome_index/GRCm39" \
+       -U "$r1_file" \
+       -S "$sam_file" \
+       --rna-strandness R \
+       --new-summary
+
+
+    echo "Alinhamento completado para $sample_name"
+done
+
+# Segue mesma etapa de converter sam para bam
+
 # --- Check strand specificity of the RNA-seq data
 for bam_file in "$align_dir"/*.hisat2.sorted.bam; do
     sample_name=$(basename "$bam_file" .hisat2.sorted.bam) 
