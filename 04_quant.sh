@@ -3,15 +3,17 @@
 
 set -euo pipefail
 
-conda deactivate
+source deactivate
 
 fastp_dir="$HOME/your/analisys/fastp"
 align_dir="$HOME/your/analisys/hisat2"
 quant_dir="$HOME/your/analisys/stringtie"
 genome_index="$HOME/your/analisys/hisat2_index"
+qc_dir="$HOME/your/analisys/rseqc"
 prepde_script="$HOME/stringtie-2.2.1.Linux_x86_64/stringtie/prepDE.py3"
 
 mkdir -p "$quant_dir"
+mkdir -p "$qc_dir"
 
 # --- Quantificar com Stringtie
 
@@ -52,9 +54,9 @@ mv sample_list.csv "$quant_dir"
 
 
 #Rseqc strandness analysis
-conda activate rnaseq
+source activate rnaseq
 
 for bam_file in /home/joyce/hisat2/*.hisat2.sorted.bam; do
     sample_name=$(basename "$bam_file" .hisat2.sorted.bam) 
-    infer_experiment.py -r /home/joyce/genome/gencode.v38.annotation.gtf -i "$bam_file" > /home/joyce/rseqc/"$sample_name"_strandness.txt
+    infer_experiment.py -r "$genome_index"/gencode.v38.annotation.gtf -i "$bam_file" > "$qc_dir"/"$sample_name"_strandness.txt
 done
