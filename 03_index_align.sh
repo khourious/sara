@@ -41,7 +41,10 @@ for file in "$fastp_dir"/*_FP.R1.paired.fastq.gz; do
     # --- Arquivos de entrada
     r1_file="$fastp_dir/${sample_name}_FP.R1.paired.fastq.gz"
     r2_file="$fastp_dir/${sample_name}_FP.R2.paired.fastq.gz"
-
+    
+    echo "----------------------------------------"
+    echo "Processando: $sample_name"
+    
     hisat2 --dta \
            -x "$genome_index/GRCh38" \
            -1 "$r1_file" \
