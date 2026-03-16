@@ -24,12 +24,21 @@ done
 # --- FastQC em todos os arquivos concatenados
 echo "Rodando FastQC..."
 for file in "$concat_dir"/*.fastq.gz; do
-    fastqc -o "$fastqc_dir" "$file"
+    sample_name=$(basename "$file" .fastq.gz)
+
+    # checa se já existe relatório
+    if [[ -f "$fastqc_dir/${sample_name}_fastqc.html" || -f "$fastqc_dir/${sample_name}_fastqc.zip" ]]; then
+        echo "FastQC já realizado para $sample_name, pulando..."
+    else
+        echo "Executando FastQC para $sample_name..."
+        fastqc -o "$fastqc_dir" "$file"
+    fi
 done
 
-# --- MultiQC 
+# --- MultiQC para consolidar relatórios
 echo "Rodando MultiQC..."
 multiqc "$fastqc_dir" -o "$qc_dir"
+
 
 # --- Filtar e Trimming
 for file in "$input_dir"/*.R*.fastq.gz; do
