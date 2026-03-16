@@ -8,13 +8,14 @@ conda deactivate
 fastp_dir="$HOME/your/analisys/fastp"
 align_dir="$HOME/your/analisys/hisat2"
 quant_dir="$HOME/your/analisys/stringtie"
+genome_index="$HOME/your/analisys/hisat2_index"
 prepde_script="$HOME/stringtie-2.2.1.Linux_x86_64/stringtie/prepDE.py3"
 
 mkdir -p "$quant_dir"
 
 # --- Quantificar com Stringtie
 
-string_dir="$HOME"/stringtie-2.2.1.Linux_x86_64/stringtie
+string_dir="$HOME"/stringtie-2.2.1.Linux_x86_64/
 
 for bam_file in "$align_dir"/*.hisat2.sorted.bam; do
     sample_name=$(basename "$bam_file" .hisat2.sorted.bam)
