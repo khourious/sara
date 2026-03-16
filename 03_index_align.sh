@@ -89,7 +89,6 @@ for sam_file in "$align_dir"/*.hisat2.sam; do
 
     # --- Eliminar arquivos temporários
     echo "Limpando arquivos temporários."
-    rm "${bam_file%.sorted.bam}.bam"
     rm "$sam_file"
 
     echo "Conversão completada para $sample_name"
