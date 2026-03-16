@@ -30,7 +30,8 @@ for file in "$concat_dir"/*.fastq.gz; do
     if [[ -f "$fastqc_dir/${sample_name}_fastqc.html" || -f "$fastqc_dir/${sample_name}_fastqc.zip" ]]; then
         echo "FastQC já realizado para $sample_name, pulando..."
     else
-        echo "Executando FastQC para $sample_name..."
+        echo "----------------------------------------"
+        echo "Processando: $sample_name"
         fastqc -o "$fastqc_dir" "$file"
     fi
 done
@@ -43,7 +44,8 @@ multiqc "$fastqc_dir" -o "$fastqc_dir"
 # --- Filtar e Trimming para Paired-end
 for file in "$concat_dir"/*.R*.fastq.gz; do
     sample_name=$(basename "$file" | sed 's/.R[12].fastq.gz//')
-
+    
+    echo "----------------------------------------"
     echo "Processando $sample_name..."
 
     fastp -f 1 -t 1 -3 -5 -W 4 -M 25 -l 40 \ #adapt for your dataset
@@ -62,6 +64,7 @@ done
 for file in "$concat_dir"/*.fastq.gz; do
     sample_name=$(basename "$file" .fastq.gz)
 
+    echo "----------------------------------------"
     echo "Processando $sample_name..."
 
     # se já tiver rodado fastp, pula
