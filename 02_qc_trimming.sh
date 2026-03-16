@@ -40,7 +40,7 @@ echo "Rodando MultiQC..."
 multiqc "$fastqc_dir" -o "$fastqc_dir"
 
 
-# --- Filtar e Trimming
+# --- Filtar e Trimming para Paired-end
 for file in "$concat_dir"/*.R*.fastq.gz; do
     sample_name=$(basename "$file" | sed 's/.R[12].fastq.gz//')
 
@@ -57,3 +57,25 @@ for file in "$concat_dir"/*.R*.fastq.gz; do
 
     echo "Finalizado para $sample_name."
 done
+
+# --- Filtros e Trimming para Single-end
+for file in "$concat_dir"/*.fastq.gz; do
+    sample_name=$(basename "$file" .fastq.gz)
+
+    echo "Processando $sample_name..."
+
+    # se já tiver rodado fastp, pula
+    if [[ -f "$fastp_dir/${sample_name}_FP.fastq.gz" ]]; then
+        echo "fastp já rodado para $sample_name, pulando..."
+        continue
+    fi
+
+    fastp -f 1 -t 1 -3 -5 -W 4 -M 25 -l 40 \
+        --in1 "$file" \
+        --out1 "$fastp_dir/${sample_name}_FP.fastq.gz" \
+        -h "$fastp_dir/${sample_name}_fastp.html" \
+        -j "$fastp_dir/${sample_name}_fastp.json"
+
+    echo "Finalizado para $sample_name."
+done
+
